@@ -1,6 +1,6 @@
 """v3b: RealMLP with goodpjw2008's input recipe on our frame: teacher as a logit, categorical twins of every rating too, their tuned params; + our extra features.
 Usage: python v3b_realmlp.py [epochs=6] [n_ens=8] [seed=42]"""
-import json, sys, time, numpy as np, pandas as pd
+import json, os, sys, time, numpy as np, pandas as pd
 from pytabkit import RealMLP_TD_Classifier
 from sklearn.metrics import roc_auc_score
 sys.path.insert(0, "models"); from features import load, folds, label_free, add_te, extra, CAT, FD, AGE, DD, AD
@@ -9,6 +9,8 @@ EP, NE, SEED = (int(a) for a in (sys.argv[1:] + ["6", "8", "42"][len(sys.argv) -
 name = f"v3b_realmlp_e{EP}_n{NE}_s{SEED}"; t0 = time.time()
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y); E, ET = extra(tr, te)
 X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
+if os.environ.get("TEACH"):
+    from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach"
 twins = [FD, AGE, DD, AD] + [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() <= 5]
 for D, src in ((X, tr), (XT, te)):
     D["teacher"] = np.log(D.teacher.clip(1e-6, 1 - 1e-6) / (1 - D.teacher.clip(1e-6, 1 - 1e-6)))

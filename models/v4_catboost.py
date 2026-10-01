@@ -9,6 +9,8 @@ SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 42; name = f"v4_cat_s{SEED}"; 
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
 if os.environ.get("EXTRA"):
     from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
+if os.environ.get("TEACH"):
+    from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach"
 for D, src in ((X, tr), (XT, te)):
     D["fd_c"], D["age_c"] = src[FD].astype(str).values, src[AGE].astype(str).values
     for c in CAT: D[c] = D[c].astype(str)
