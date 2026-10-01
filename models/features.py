@@ -96,3 +96,22 @@ def extra(tr, te, cache="data/feat_extra.parquet"):
     out["inflight_service_hat"] = HistGradientBoostingRegressor(max_iter=300, random_state=0).fit(og[feats], og["Inflight service"]).predict(al[feats]).astype("float32")
     out.to_parquet(cache)
     return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+
+
+def teachers(tr, te, og, og_y, cache="data/feat_teachers.parquet"):
+    """Extra teachers (trained on the original only), as logits: a05 found lgb_1500 / xgb_d8 / cat_d8 rank our labels 0.9547-0.9549."""
+    import os
+    if os.path.exists(cache):
+        out = pd.read_parquet(cache); return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+    import lightgbm as lgb, xgboost as xgb
+    from catboost import CatBoostClassifier
+    raw = [c for c in tr.columns if c != "id"]; al = pd.concat([tr, te], ignore_index=True)[raw]; O = og[raw]
+    lg = lambda p: np.log(np.clip(p, 1e-6, 1 - 1e-6) / (1 - np.clip(p, 1e-6, 1 - 1e-6))).astype("float32")
+    out = pd.DataFrame(index=al.index)
+    out["t_lgb1500"] = lg(lgb.LGBMClassifier(n_estimators=1500, learning_rate=0.03, num_leaves=63, subsample=0.8, subsample_freq=1, colsample_bytree=0.5, verbose=-1, random_state=0).fit(O, og_y).predict_proba(al)[:, 1])
+    out["t_xgb8"] = lg(xgb.XGBClassifier(n_estimators=800, learning_rate=0.03, max_depth=8, subsample=0.8, colsample_bytree=0.8, enable_categorical=True, tree_method="hist", n_jobs=8).fit(O, og_y).predict_proba(al)[:, 1])
+    Os, As = O.copy(), al.copy()
+    for c in CAT: Os[c], As[c] = Os[c].astype(str), As[c].astype(str)
+    out["t_cat8"] = lg(CatBoostClassifier(iterations=2000, learning_rate=0.05, depth=8, verbose=0, thread_count=8, random_seed=0).fit(Os, og_y, cat_features=CAT).predict_proba(As)[:, 1])
+    out.to_parquet(cache)
+    return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)

@@ -1,0 +1,6 @@
+lgb_600 (current)            0.954386
+lgb_1500_cs0.5               0.954884
+lgb_300_leaves15             0.953299
+xgb_d8                       0.954748
+cat_d8                       0.954346
+mean logit of all            0.954668

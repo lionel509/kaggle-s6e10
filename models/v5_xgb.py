@@ -8,6 +8,8 @@ name = f"v5_xgb_d{DEPTH}_s{SEED}"; t0 = time.time()
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
 if os.environ.get("EXTRA"):
     from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
+if os.environ.get("TEACH"):
+    from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach"
 P = dict(n_estimators=20000, learning_rate=0.02, max_depth=DEPTH, min_child_weight=20, subsample=0.8, colsample_bytree=0.5, reg_lambda=5,
          tree_method="hist", enable_categorical=True, max_cat_to_onehot=4, eval_metric="auc", early_stopping_rounds=300, random_state=SEED, n_jobs=8)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []

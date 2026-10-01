@@ -1,0 +1,35 @@
+/Users/lionelweng/Documents/Citadel/Active/Kaggle S6E10/analysis/a04_residuals.py:12: Pandas4Warning: Starting with pandas version 4.0 all arguments of sum will be keyword-only.
+  "n_zero_ratings": (tr[[c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() == 5]] == 0).sum(1),
+/Users/lionelweng/Documents/Citadel/Active/Kaggle S6E10/analysis/a04_residuals.py:13: Pandas4Warning: Starting with pandas version 4.0 all arguments of sum will be keyword-only.
+  "ratings_sum": tr[[c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() == 5]].sum(1)}
+                              key  groups  var_mean_res  noise_var  max_abs    ratio
+                   Type of Travel       2      0.000000   0.000000 0.000585 2.403474
+            Inflight wifi service       6      0.000002   0.000001 0.003427 1.748659
+                   n_zero_ratings       6      0.000297   0.000198 0.040929 1.497736
+                              Age      69      0.000106   0.000083 0.065487 1.282247
+                           Gender       2      0.000000   0.000000 0.000434 1.101758
+                   age_x_class_tt     374      0.000372   0.000346 0.078837 1.073834
+                 On-board service       6      0.000014   0.000013 0.009014 1.057246
+       Departure Delay in Minutes      57      0.000221   0.000210 0.075831 1.050761
+         Arrival Delay in Minutes      54      0.000215   0.000208 0.047380 1.033386
+                            Class       3      0.000001   0.000001 0.000942 0.996639
+                         fd_x_age    4977      0.001225   0.001256 0.186593 0.975327
+                       fd_x_class    3063      0.000670   0.000758 0.167397 0.883118
+                  Online boarding       6      0.000001   0.000002 0.002525 0.854735
+                  Flight Distance    2243      0.000536   0.000728 0.167397 0.736379
+                 Baggage handling       5      0.000001   0.000001 0.001325 0.704994
+                 Leg room service       6      0.000004   0.000006 0.005118 0.699804
+                     Seat comfort       6      0.000008   0.000012 0.006731 0.626966
+                   Food and drink       6      0.000006   0.000010 0.005844 0.588922
+                      Cleanliness       6      0.000006   0.000011 0.005832 0.543625
+                      ratings_sum      51      0.000028   0.000066 0.022142 0.425269
+                    Gate location       6      0.000003   0.000007 0.003843 0.368314
+Departure/Arrival time convenient       6      0.000000   0.000001 0.000669 0.279310
+           Inflight entertainment       6      0.000003   0.000010 0.003526 0.274505
+                       dep_eq_arr       2      0.000000   0.000000 0.000446 0.181550
+           Ease of Online booking       6      0.000000   0.000001 0.000457 0.108197
+                    Customer Type       2      0.000000   0.000000 0.000279 0.058781
+                  Checkin service       6      0.000000   0.000011 0.001183 0.024335
+                          arr_nan       2      0.000001   0.000102 0.001350 0.010660
+
+ratio ~1 = no structure left; >>1 = the model misses signal on that key
