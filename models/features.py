@@ -72,3 +72,27 @@ def add_te(Xtr, Xva, Xte, ytr, m=20, inner=5, seed=0):
         e = enc(ktr[name], ytr)
         Xtr[name] = o; Xva[name] = kva[name].map(e).fillna(p).values; Xte[name] = kte[name].map(e).fillna(p).values
     return Xtr, Xva, Xte
+
+
+def extra(tr, te, cache="data/feat_extra.parquet"):
+    """Leads from our own analysis (a01-a04): original label rate on exact rating patterns, zero-rating count, the dropped Inflight service column imputed."""
+    import os
+    if os.path.exists(cache):
+        out = pd.read_parquet(cache); return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+    og = pd.concat([pd.read_csv("data/orig/train.csv"), pd.read_csv("data/orig/test.csv")])
+    oy = (og.satisfaction == "satisfied").astype(float)
+    al = pd.concat([tr, te], ignore_index=True)
+    rat = [c for c in al.columns if al[c].dtype.kind == "i" and c not in ("id", AGE, FD, DD)]
+    groups = {"ratings": rat, "ratings_cat": rat + CAT, "nodelay": rat + CAT + [AGE, FD]}
+    out = pd.DataFrame(index=al.index)
+    for n, cols in groups.items():
+        ko = og[cols].astype(str).agg("|".join, axis=1); ka = al[cols].astype(str).agg("|".join, axis=1)
+        g = oy.groupby(ko.values).agg(["sum", "count"])
+        out[f"om_{n}"] = ka.map((g["sum"] + 0.4345 * 2) / (g["count"] + 2)).astype("float32")  # smoothed; NaN = no match
+        out[f"om_{n}_n"] = ka.map(g["count"]).fillna(0).astype("float32")
+    out["n_zero_ratings"] = (al[rat] == 0).sum(axis=1)
+    from sklearn.ensemble import HistGradientBoostingRegressor
+    feats = rat + [AGE, FD]
+    out["inflight_service_hat"] = HistGradientBoostingRegressor(max_iter=300, random_state=0).fit(og[feats], og["Inflight service"]).predict(al[feats]).astype("float32")
+    out.to_parquet(cache)
+    return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)

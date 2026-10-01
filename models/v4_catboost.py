@@ -1,12 +1,14 @@
 """v4: CatBoost on v1's frame + nested TE, with Flight Distance and Age also as native cat features (ordered target stats).
 Usage: python v4_catboost.py [seed=42]"""
-import json, sys, time, numpy as np, pandas as pd
+import json, os, sys, time, numpy as np, pandas as pd
 from catboost import CatBoostClassifier
 from sklearn.metrics import roc_auc_score
 sys.path.insert(0, "models"); from features import load, folds, label_free, add_te, CAT, FD, AGE
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 42; name = f"v4_cat_s{SEED}"; t0 = time.time()
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
+if os.environ.get("EXTRA"):
+    from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
 for D, src in ((X, tr), (XT, te)):
     D["fd_c"], D["age_c"] = src[FD].astype(str).values, src[AGE].astype(str).values
     for c in CAT: D[c] = D[c].astype(str)
