@@ -21,7 +21,18 @@ def folds(y, k=5, seed=42):
     return list(StratifiedKFold(k, shuffle=True, random_state=seed).split(np.zeros(len(y)), y))
 
 
-def label_free(tr, te, og, og_y):
+def label_free(tr, te, og, og_y, cache="data/feat_lf.parquet"):
+    """Cached: neural-net scripts must not import lightgbm (two OpenMP runtimes segfault next to torch on macOS)."""
+    import os
+    if os.path.exists(cache):
+        out = pd.read_parquet(cache)
+        for c in CAT: out[c] = out[c].astype("category")
+        return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+    a, b = _label_free(tr, te, og, og_y); pd.concat([a, b], ignore_index=True).to_parquet(cache)
+    return a, b
+
+
+def _label_free(tr, te, og, og_y):
     raw = [c for c in tr.columns if c != "id"]
     al = pd.concat([tr, te], ignore_index=True)
     out = al[raw].copy()
