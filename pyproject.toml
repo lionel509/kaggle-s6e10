@@ -13,9 +13,11 @@ dependencies = [
     "numpy>=2.5.3",
     "pandas>=3.0.6",
     "pyarrow>=25.0.1",
+    "pytabkit>=1.7.3",
     "scikit-learn>=1.9.1",
     "scipy>=1.18.1",
     "tiktoken>=0.14.0",
+    "torch>=2.14.1",
     "xgboost>=3.4.1",
 ]
 

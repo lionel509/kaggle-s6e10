@@ -6,3 +6,4 @@ __pycache__/
 *.npy
 public/
 e9/
+public_out/

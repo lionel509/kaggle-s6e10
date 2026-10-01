@@ -1,11 +1,13 @@
 """v5: XGBoost (hist, native categoricals) on v1's frame + nested TE.  Usage: python v5_xgb.py [seed=42] [depth=8]"""
-import json, sys, time, numpy as np, xgboost as xgb
+import json, os, sys, time, numpy as np, pandas as pd, xgboost as xgb
 from sklearn.metrics import roc_auc_score
 sys.path.insert(0, "models"); from features import load, folds, label_free, add_te
 
 SEED, DEPTH = (int(a) for a in (sys.argv[1:] + ["42", "8"][len(sys.argv) - 1:])[:2])
 name = f"v5_xgb_d{DEPTH}_s{SEED}"; t0 = time.time()
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
+if os.environ.get("EXTRA"):
+    from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
 P = dict(n_estimators=20000, learning_rate=0.02, max_depth=DEPTH, min_child_weight=20, subsample=0.8, colsample_bytree=0.5, reg_lambda=5,
          tree_method="hist", enable_categorical=True, max_cat_to_onehot=4, eval_metric="auc", early_stopping_rounds=300, random_state=SEED, n_jobs=8)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
