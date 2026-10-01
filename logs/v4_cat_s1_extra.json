@@ -1,0 +1,30 @@
+{
+ "name": "v4_cat_s1_extra",
+ "oof": 0.9610987819868093,
+ "folds": [
+  0.9611021432880523,
+  0.96020826043759,
+  0.9617410210511339,
+  0.9614161252473965,
+  0.9610649298840962
+ ],
+ "iters": [
+  1128,
+  1120,
+  913,
+  1282,
+  826
+ ],
+ "params": {
+  "iterations": 20000,
+  "learning_rate": 0.06,
+  "depth": 7,
+  "l2_leaf_reg": 5,
+  "eval_metric": "AUC",
+  "od_type": "Iter",
+  "od_wait": 300,
+  "random_seed": 1,
+  "thread_count": 4,
+  "verbose": 0
+ }
+}

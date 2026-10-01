@@ -1,0 +1,20 @@
+{
+ "oof": 0.9616155334214805,
+ "weights": {
+  "own:v2_init_te_fd_k5_s42": 0.015,
+  "own:v2_init_teacher_k5_s42": 0.07,
+  "goodpjw2008:oof_members:xgb_v3_s1": 0.015,
+  "goodpjw2008:oof_members:xgb_v3_d10": 0.11000000000000001,
+  "goodpjw2008:oof_members:xgb_v4_tuned": 0.105,
+  "goodpjw2008:oof_members:realmlp_v4": 0.024999999999999998,
+  "goodpjw2008:oof_members:realmlp_v4_s1": 0.05500000000000001,
+  "goodpjw2008:oof_members:realmlp_v4_s2": 5.551115123125783e-17,
+  "goodpjw2008:oof_members:realmlp_fa_s123": 0.12000000000000001,
+  "goodpjw2008:oof_members:deepfm_v1": 0.07,
+  "goodpjw2008:oof_members:cat_vb": 0.055,
+  "goodpjw2008:oof_members:lgb_vb": 0.12500000000000003,
+  "megayak:oof_members:cat": 0.025000000000000005,
+  "thisray:oof_xgb:pred": 0.04,
+  "yekenot:oof_preds:satisfaction": 0.17
+ }
+}

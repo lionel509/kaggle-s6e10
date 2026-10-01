@@ -1,0 +1,12 @@
+{
+ "oof": 0.9613252009103512,
+ "weights": {
+  "own:v2_init_te_fd_k5_s42": 0.05,
+  "own:v2_init_teacher_k5_s42": 0.1,
+  "own:v3_realmlp_e6_n4_s42": 0.15000000000000002,
+  "own:v4_cat_s42_extra": 0.28,
+  "own:v4_cat_s42": 0.13,
+  "own:v5_xgb_d8_s42_extra": 0.2,
+  "own:v5_xgb_d8_s42": 0.09000000000000001
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "name": "v2_init_te_fd_k5_s42",
+ "oof": 0.96096685560044,
+ "folds": [
+  0.961024693486958,
+  0.9600954976667929,
+  0.9616832339903446,
+  0.9610054190965285,
+  0.9610625526724239
+ ],
+ "iters": [
+  503,
+  838,
+  750,
+  689,
+  746
+ ],
+ "params": {
+  "n_estimators": 10000,
+  "learning_rate": 0.03,
+  "num_leaves": 63,
+  "min_child_samples": 100,
+  "subsample": 0.8,
+  "subsample_freq": 1,
+  "colsample_bytree": 0.5,
+  "reg_lambda": 3,
+  "verbose": -1,
+  "random_state": 42
+ },
+ "key": "te_fd"
+}

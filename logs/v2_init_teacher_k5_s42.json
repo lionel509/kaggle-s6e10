@@ -1,0 +1,31 @@
+{
+ "name": "v2_init_teacher_k5_s42",
+ "oof": 0.9606859637297687,
+ "folds": [
+  0.9606747153837397,
+  0.9598665106004028,
+  0.9612782190348647,
+  0.9608533160384893,
+  0.9608017254961124
+ ],
+ "iters": [
+  924,
+  566,
+  497,
+  567,
+  374
+ ],
+ "params": {
+  "n_estimators": 10000,
+  "learning_rate": 0.03,
+  "num_leaves": 63,
+  "min_child_samples": 100,
+  "subsample": 0.8,
+  "subsample_freq": 1,
+  "colsample_bytree": 0.5,
+  "reg_lambda": 3,
+  "verbose": -1,
+  "random_state": 42
+ },
+ "key": "teacher"
+}

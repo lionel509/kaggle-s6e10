@@ -1,0 +1,47 @@
+{
+ "name": "v1_lgb",
+ "oof": 0.9609707267001468,
+ "folds": [
+  0.961038002853251,
+  0.9601076802558227,
+  0.9616544847936148,
+  0.9610560658312421,
+  0.9610305314987653
+ ],
+ "iters": [
+  621,
+  686,
+  586,
+  509,
+  596
+ ],
+ "params": {
+  "n_estimators": 10000,
+  "learning_rate": 0.03,
+  "num_leaves": 63,
+  "min_child_samples": 100,
+  "subsample": 0.8,
+  "subsample_freq": 1,
+  "colsample_bytree": 0.5,
+  "reg_lambda": 3,
+  "verbose": -1,
+  "random_state": 42
+ },
+ "top_imp": {
+  "teacher": 1952,
+  "te_age_cls_tt_ct": 1606,
+  "te_fd_cls": 1239,
+  "te_fd": 1210,
+  "te_fd_tt": 1086,
+  "Flight Distance": 881,
+  "te_fd10": 852,
+  "Age": 832,
+  "Flight Distance_cnt": 784,
+  "Flight Distance_om": 782,
+  "rt_Inflight wifi service": 776,
+  "rt_Age": 718,
+  "rt_Gate location": 710,
+  "fd_mod100": 709,
+  "rt_Checkin service": 688
+ }
+}
