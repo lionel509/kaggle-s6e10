@@ -13,7 +13,7 @@ for D, src in ((X, tr), (XT, te)):
     D["fd_c"], D["age_c"] = src[FD].astype(str).values, src[AGE].astype(str).values
     for c in CAT: D[c] = D[c].astype(str)
 cats = CAT + ["fd_c", "age_c"]
-P = dict(iterations=20000, learning_rate=0.06, depth=7, l2_leaf_reg=5, eval_metric="AUC", od_type="Iter", od_wait=300, random_seed=SEED, thread_count=8, verbose=0)
+P = dict(iterations=20000, learning_rate=0.06, depth=7, l2_leaf_reg=5, eval_metric="AUC", od_type="Iter", od_wait=300, random_seed=SEED, thread_count=int(os.environ.get("THREADS", 8)), verbose=0)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
 for i, (a, b) in enumerate(folds(y)):
     Xa, Xb, Xt = add_te(X.iloc[a], X.iloc[b], XT, y[a])
