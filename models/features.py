@@ -102,7 +102,10 @@ def teachers(tr, te, og, og_y, cache="data/feat_teachers.parquet"):
     """Extra teachers (trained on the original only), as logits: a05 found lgb_1500 / xgb_d8 / cat_d8 rank our labels 0.9547-0.9549."""
     import os
     if os.path.exists(cache):
-        out = pd.read_parquet(cache); return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+        out = pd.read_parquet(cache)
+        if os.environ.get("TEACH") == "2":  # + the RealMLP teacher (models/teacher_mlp.py)
+            out = pd.concat([out, pd.read_parquet("data/feat_teacher_mlp.parquet")], axis=1)
+        return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
     import lightgbm as lgb, xgboost as xgb
     from catboost import CatBoostClassifier
     raw = [c for c in tr.columns if c != "id"]; al = pd.concat([tr, te], ignore_index=True)[raw]; O = og[raw]

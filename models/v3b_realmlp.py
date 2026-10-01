@@ -10,7 +10,7 @@ name = f"v3b_realmlp_e{EP}_n{NE}_s{SEED}"; t0 = time.time()
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y); E, ET = extra(tr, te)
 X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
 if os.environ.get("TEACH"):
-    from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach"
+    from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("2" if os.environ["TEACH"] == "2" else "")
 twins = [FD, AGE, DD, AD] + [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() <= 5]
 for D, src in ((X, tr), (XT, te)):
     D["teacher"] = np.log(D.teacher.clip(1e-6, 1 - 1e-6) / (1 - D.teacher.clip(1e-6, 1 - 1e-6)))
