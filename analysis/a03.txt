@@ -1,0 +1,47 @@
+Top interaction pairs (weighted RMS of cell rate minus additive-logit prediction):
+  0.2379  Inflight wifi service x Gate location
+  0.2019  Inflight wifi service x Departure/Arrival time convenient
+  0.1962  Departure/Arrival time convenient x Gate location
+  0.1888  Ease of Online booking x Gate location
+  0.1654  Food and drink x Inflight entertainment
+  0.1652  Inflight entertainment x Cleanliness
+  0.1615  Food and drink x Cleanliness
+  0.1554  Departure/Arrival time convenient x Ease of Online booking
+  0.1418  Seat comfort x Inflight entertainment
+  0.1392  Seat comfort x Cleanliness
+  0.1374  Inflight wifi service x Ease of Online booking
+  0.1339  Food and drink x Seat comfort
+  0.1243  On-board service x Baggage handling
+  0.1227  On-board service x Leg room service
+  0.1160  Leg room service x Baggage handling
+
+Departure Delay in Minutes
+                            train_rate  train_n  orig_rate
+Departure Delay in Minutes                                
+(-1, 0]                         0.4480   635152     0.4594
+(0, 5]                          0.4438    25786     0.4471
+(5, 15]                         0.4081    20070     0.4245
+(15, 30]                        0.3418    11967     0.3843
+(30, 60]                        0.3143     6307     0.3641
+(60, 120]                       0.3279      122     0.3580
+(120, 2000]                     0.3074      231     0.3595
+
+Arrival Delay in Minutes
+                          train_rate  train_n  orig_rate
+Arrival Delay in Minutes                                
+(-1, 0]                       0.4521   640415     0.4741
+(0, 5]                        0.4594    19165     0.4793
+(5, 15]                       0.2931    21119     0.3567
+(15, 30]                      0.3043    12894     0.3574
+(30, 60]                      0.3099     5440     0.3605
+(60, 120]                     0.3205       78     0.3530
+(120, 2000]                   0.3060      232     0.3609
+
+arr-dep diff: corr train 0.842 orig 0.965; |diff|<=5 share train 0.938 orig 0.698
+
+orig corr of dropped 'Inflight service' with kept ratings:
+Baggage handling          0.629
+On-board service          0.552
+Inflight entertainment    0.406
+Leg room service          0.370
+Checkin service           0.238

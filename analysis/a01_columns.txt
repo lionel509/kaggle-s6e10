@@ -1,0 +1,171 @@
+shapes (699635, 23) (299844, 22) (129880, 25)
+orig cols ['Unnamed: 0', 'id', 'Gender', 'Customer Type', 'Age', 'Type of Travel', 'Class', 'Flight Distance', 'Inflight wifi service', 'Departure/Arrival time convenient', 'Ease of Online booking', 'Gate location', 'Food and drink', 'Online boarding', 'Seat comfort', 'Inflight entertainment', 'On-board service', 'Leg room service', 'Baggage handling', 'Checkin service', 'Inflight service', 'Cleanliness', 'Departure Delay in Minutes', 'Arrival Delay in Minutes', 'satisfaction']
+target {False: 0.5564, True: 0.4436} | orig {'neutral or dissatisfied': 0.5655, 'satisfied': 0.4345}
+NaN train {'Arrival Delay in Minutes': 292} test {'Arrival Delay in Minutes': 130} orig {'Arrival Delay in Minutes': 393}
+
+## Age: dtype=int64 nuniq=75 min=7 max=85 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+top values {25: 22387, 39: 22117, 40: 20082, 41: 19606, 47: 17999, 27: 17638, 44: 17534, 42: 17362}
+
+## Flight Distance: dtype=int64 nuniq=3474 min=67 max=4983 | test-unseen=47 | train-vals-not-in-orig=3 (1.0000 rows in orig)
+top values {594: 8176, 862: 6580, 2475: 6262, 641: 5646, 689: 5602, 447: 5327, 762: 5146, 867: 5073}
+
+## Inflight wifi service: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                            n    rate  orig_rate  orig_n
+Inflight wifi service                                   
+0                       13102  0.8873     0.9974    3916
+1                      107739  0.3907     0.3282   22328
+2                      186870  0.2704     0.2472   32320
+3                      184436  0.2762     0.2518   32185
+4                      128136  0.6222     0.6008   24775
+5                       79352  0.9504     0.9902   14356
+
+## Departure/Arrival time convenient: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                                        n    rate  orig_rate  orig_n
+Departure/Arrival time convenient                                   
+0                                   25751  0.4777     0.4811    6681
+1                                   95072  0.5060     0.4904   19409
+2                                  118709  0.4532     0.4447   21534
+3                                  121640  0.4489     0.4397   22378
+4                                  181530  0.4016     0.3886   31880
+5                                  156933  0.4373     0.4247   27998
+
+## Ease of Online booking: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                             n    rate  orig_rate  orig_n
+Ease of Online booking                                   
+0                        16073  0.7076     0.6656    5682
+1                       110934  0.4146     0.3795   21886
+2                       174868  0.3137     0.3035   30051
+3                       175267  0.3204     0.3101   30393
+4                       130695  0.5564     0.5316   24444
+5                        91798  0.7543     0.7347   17424
+
+## Gate location: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                    n    rate  orig_rate  orig_n
+Gate location                                   
+0                1455  0.5430     1.0000       1
+1              104611  0.5144     0.4989   21991
+2              130300  0.4647     0.4638   24296
+3              202277  0.3372     0.3471   35717
+4              168488  0.4105     0.3907   30466
+5               92504  0.6248     0.5680   17409
+
+## Food and drink: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                     n    rate  orig_rate  orig_n
+Food and drink                                   
+0                 1014  0.2189     0.4167     132
+1                70923  0.1707     0.1996   16051
+2               148893  0.3935     0.3890   27383
+3               154557  0.4066     0.3974   27794
+4               168861  0.5254     0.5258   30563
+5               155387  0.5655     0.5509   27957
+
+## Online boarding: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                      n    rate  orig_rate  orig_n
+Online boarding                                   
+0                  9147  0.6204     0.5646    3080
+1                 57588  0.1053     0.1378   13261
+2                119297  0.0854     0.1145   21934
+3                149783  0.1284     0.1376   27117
+4                210950  0.6419     0.6230   38468
+5                152870  0.8751     0.8706   26020
+
+## Seat comfort: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                   n    rate  orig_rate  orig_n
+Seat comfort                                   
+0                838  0.1838     0.0000       1
+1              63130  0.1736     0.2233   15108
+2              92471  0.1720     0.2260   18529
+3             120182  0.1849     0.2141   23328
+4             226726  0.5706     0.5603   39756
+5             196288  0.6711     0.6513   33158
+
+## Inflight entertainment: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                             n    rate  orig_rate  orig_n
+Inflight entertainment                                   
+0                         1020  0.1402     0.0000      18
+1                        70131  0.1267     0.1419   15675
+2                       113341  0.1730     0.2127   21968
+3                       122977  0.2387     0.2732   23884
+4                       210098  0.6195     0.6111   36791
+5                       182068  0.6711     0.6506   31544
+
+## On-board service: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                       n    rate  orig_rate  orig_n
+On-board service                                   
+0                    801  0.1473     0.0000       5
+1                  61164  0.1745     0.1967   14787
+2                  87014  0.2204     0.2555   18351
+3                 150812  0.2910     0.3181   28542
+4                 225949  0.5413     0.5346   38703
+5                 173895  0.6566     0.6464   29492
+
+## Leg room service: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                       n    rate  orig_rate  orig_n
+Leg room service                                   
+0                   1693  0.2699     0.3445     598
+1                  53094  0.1887     0.2041   12895
+2                 126775  0.2481     0.2753   24540
+3                 131580  0.2664     0.2761   25056
+4                 204124  0.5937     0.5831   35886
+5                 182369  0.6151     0.6146   30905
+
+## Baggage handling: dtype=int64 nuniq=5 min=1 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                       n    rate  orig_rate  orig_n
+Baggage handling                                   
+1                  30460  0.3084     0.3003    9028
+2                  58532  0.2651     0.2941   14362
+3                 130348  0.2140     0.2380   25851
+4                 277622  0.4826     0.4806   46761
+5                 202673  0.6096     0.6159   33878
+
+## Checkin service: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                      n    rate  orig_rate  orig_n
+Checkin service                                   
+0                   929  0.1787     0.0000       1
+1                 66468  0.1992     0.2396   16108
+2                 74919  0.2156     0.2509   16102
+3                200177  0.4604     0.4508   35453
+4                209592  0.4703     0.4600   36333
+5                147550  0.6103     0.6117   25883
+
+## Cleanliness: dtype=int64 nuniq=6 min=0 max=5 | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                  n    rate  orig_rate  orig_n
+Cleanliness                                   
+0               945  0.1683     0.0000      14
+1             72518  0.1548     0.1970   16729
+2            102596  0.1749     0.2126   20113
+3            169931  0.4373     0.4331   30639
+4            190681  0.5452     0.5353   33969
+5            162964  0.6305     0.6125   28416
+
+## Departure Delay in Minutes: dtype=int64 nuniq=167 min=0 max=489 | test-unseen=19 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+top values {0: 635152, 1: 8240, 2: 5781, 3: 4382, 4: 3869, 5: 3514, 6: 3051, 7: 2725}
+
+## Arrival Delay in Minutes: dtype=float64 nuniq=168 min=0.0 max=491.0 | test-unseen=11 | train-vals-not-in-orig=0 (0.9996 rows in orig)
+top values {0.0: 640415, 1.0: 4546, 2.0: 4141, 3.0: 3881, 4.0: 3612, 6.0: 3256, 5.0: 2985, 7.0: 2735}
+non-integer share 0.0
+
+## Gender: dtype=str nuniq=2 min=Female max=Male | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+             n    rate  orig_rate  orig_n
+Gender                                   
+Female  347952  0.4380     0.4290   65899
+Male    351683  0.4491     0.4401   63981
+
+## Customer Type: dtype=str nuniq=2 min=Loyal Customer max=disloyal Customer | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                        n    rate  orig_rate  orig_n
+Customer Type                                       
+Loyal Customer     576990  0.4951     0.4781  106100
+disloyal Customer  122645  0.2009     0.2397   23780
+
+## Type of Travel: dtype=str nuniq=2 min=Business travel max=Personal Travel | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+                      n    rate  orig_rate  orig_n
+Type of Travel                                    
+Business travel  497441  0.5843     0.5837   89693
+Personal Travel  202194  0.0973     0.1013   40187
+
+## Class: dtype=str nuniq=3 min=Business max=Eco Plus | test-unseen=0 | train-vals-not-in-orig=0 (1.0000 rows in orig)
+               n    rate  orig_rate  orig_n
+Class                                      
+Business  342212  0.7253     0.6944   62160
+Eco       327404  0.1676     0.1877   58309
+Eco Plus   30019  0.2422     0.2464    9411

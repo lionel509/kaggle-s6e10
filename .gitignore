@@ -1,0 +1,7 @@
+data/
+.venv/
+oof/
+subs/
+__pycache__/
+*.npy
+public/

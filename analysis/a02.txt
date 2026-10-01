@@ -1,0 +1,30 @@
+/Users/lionelweng/Documents/Citadel/Active/Kaggle S6E10/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:3036: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[:, None]
+/Users/lionelweng/Documents/Citadel/Active/Kaggle S6E10/.venv/lib/python3.12/site-packages/numpy/lib/_function_base_impl.py:3037: RuntimeWarning: invalid value encountered in divide
+  c /= stddev[None, :]
+zero-delay share: dep train 0.908 orig 0.565 | arr train 0.915 orig 0.560
+
+match[all] (21 cols): train 0.0000  test 0.0000  train-dup-within 0.0000
+  on matched train rows: corr(orig label, synth label) nan ; agree 0.8235 ; synth rate 0.8235
+
+match[no-delays] (19 cols): train 0.0001  test 0.0001  train-dup-within 0.0002
+  on matched train rows: corr(orig label, synth label) 0.7107 ; agree 0.9184 ; synth rate 0.8163
+
+match[ratings-only] (13 cols): train 0.4109  test 0.4119  train-dup-within 0.6366
+  on matched train rows: corr(orig label, synth label) 0.8375 ; agree 0.9186 ; synth rate 0.5775
+
+Flight Distance: 2243 values n>=30; var(rate)=0.06954 var(res vs smooth)=0.02528 expected sampling var=0.00301 -> real share of residual 0.88
+LOO quirk sharing, Flight Distance:
+  first1+len             groups=   15  loo-corr=0.086
+  first2+len             groups=  125  loo-corr=0.057
+  first3+len             groups=  783  loo-corr=0.057
+  last1                  groups=   10  loo-corr=-0.046
+  last2                  groups=  100  loo-corr=0.049
+  last3                  groups=  957  loo-corr=-0.014
+  mod7                   groups=    7  loo-corr=-0.102
+  div100                 groups=   42  loo-corr=0.073
+  div10                  groups=  380  loo-corr=0.063
+  gpt2 first tok         groups=  202  loo-corr=0.088
+  gpt2 last tok          groups=  581  loo-corr=0.102
+  gpt2 n tok             groups=    3  loo-corr=0.025
+  cl100k first tok       groups=  669  loo-corr=0.052
