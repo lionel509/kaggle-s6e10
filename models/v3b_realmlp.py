@@ -6,7 +6,7 @@ from sklearn.metrics import roc_auc_score
 sys.path.insert(0, "models"); from features import load, folds, label_free, add_te, extra, CAT, FD, AGE, DD, AD
 
 EP, NE, SEED = (int(a) for a in (sys.argv[1:] + ["6", "8", "42"][len(sys.argv) - 1:])[:3])
-name = f"v3b_realmlp_e{EP}_n{NE}_s{SEED}"; t0 = time.time()
+name = f"v3b_realmlp_e{EP}_n{NE}_s{SEED}"; K = int(os.environ.get("K", 5)); name += f"_k{K}" if K != 5 else ""; t0 = time.time()
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y); E, ET = extra(tr, te)
 X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
 if os.environ.get("TEACH"):
@@ -28,10 +28,10 @@ P = dict(n_ens=NE, n_epochs=EP, batch_size=256, use_early_stopping=False, lr=0.0
          tfms=["one_hot", "median_center", "robust_scale", "smooth_clip", "embedding", "l2_normalize"],
          device="mps", random_state=SEED, verbosity=0, val_metric_name="1-auc_ovr")
 oof, pt, scores = np.zeros(len(y)), np.zeros(len(XT)), []
-for i, (a, b) in enumerate(folds(y)):
+for i, (a, b) in enumerate(folds(y, K)):
     Xa, Xb, Xt = add_te(X.iloc[a], X.iloc[b], XT, y[a])
     m = RealMLP_TD_Classifier(**P).fit(Xa, y[a], X_val=Xb, y_val=y[b], cat_col_names=cats)
-    oof[b] = m.predict_proba(Xb)[:, 1]; pt += m.predict_proba(Xt)[:, 1] / 5
+    oof[b] = m.predict_proba(Xb)[:, 1]; pt += m.predict_proba(Xt)[:, 1] / K
     scores.append(roc_auc_score(y[b], oof[b])); print(f"fold {i} {scores[-1]:.6f} ({time.time()-t0:.0f}s)", flush=True)
 auc = roc_auc_score(y, oof); print(f"OOF {auc:.6f}  ({time.time()-t0:.0f}s)")
 np.save(f"oof/{name}.npy", oof); np.save(f"oof/{name}_test.npy", pt)
