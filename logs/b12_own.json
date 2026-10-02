@@ -1,0 +1,19 @@
+{
+ "oof": 0.9614798033615147,
+ "weights": {
+  "own:v2_init_te_fd_k5_s42": 0.030000000000000002,
+  "own:v2_init_teacher_k5_s42": 0.025,
+  "own:v3b_realmlp_e6_n8_s1": 0.01,
+  "own:v3b_realmlp_e6_n8_s42_teach": 0.30000000000000004,
+  "own:v3b_realmlp_e6_n8_s42": 0.05500000000000001,
+  "own:v4_cat_s1_extra": 0.055,
+  "own:v4_cat_s42_extra_teach": 0.14500000000000002,
+  "own:v4_cat_s42_extra": 0.11500000000000002,
+  "own:v4_cat_s42": 0.015000000000000003,
+  "own:v5_xgb_d8_s1_extra_teach": 0.06500000000000006,
+  "own:v5_xgb_d8_s42_extra_teach2": 0.13500000000000004,
+  "own:v5_xgb_d8_s42_extra_teach": 0.005,
+  "own:v5_xgb_d8_s42_extra": 0.015,
+  "own:v5_xgb_d8_s42": 0.030000000000000002
+ }
+}
