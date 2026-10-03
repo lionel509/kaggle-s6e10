@@ -1,0 +1,34 @@
+  0.960971  own:v1_lgb
+  0.960967  own:v2_init_te_fd_k5_s42
+  0.960686  own:v2_init_teacher_k5_s42
+  0.960596  own:v3_realmlp_e6_n4_s42
+  0.961038  own:v3b_realmlp_e6_n8_s1
+  0.961308  own:v3b_realmlp_e6_n8_s42_k10_teach
+  0.961161  own:v3b_realmlp_e6_n8_s42_teach
+  0.961063  own:v3b_realmlp_e6_n8_s42
+  0.961099  own:v4_cat_s1_extra
+  0.961154  own:v4_cat_s42_extra_teach
+  0.961110  own:v4_cat_s42_extra
+  0.961300  own:v4_cat_s42_k10_extra_teach
+  0.961361  own:v4_cat_s42_k20_extra_teach
+  0.961072  own:v4_cat_s42
+  0.961178  own:v5_xgb_d8_s1_extra_teach
+  0.961167  own:v5_xgb_d8_s42_extra_teach2
+  0.961172  own:v5_xgb_d8_s42_extra_teach
+  0.961066  own:v5_xgb_d8_s42_extra
+  0.961335  own:v5_xgb_d8_s42_k10_extra_teach
+  0.961386  own:v5_xgb_d8_s42_k20_extra_teach
+  0.961024  own:v5_xgb_d8_s42
+
+BLEND OOF 0.961630
+  0.315  own:v3b_realmlp_e6_n8_s42_k10_teach
+  0.250  own:v5_xgb_d8_s42_k20_extra_teach
+  0.225  own:v4_cat_s42_k20_extra_teach
+  0.090  own:v4_cat_s42_k10_extra_teach
+  0.055  own:v4_cat_s42_extra
+  0.030  own:v3b_realmlp_e6_n8_s42
+  0.020  own:v5_xgb_d8_s42_k10_extra_teach
+  0.010  own:v2_init_te_fd_k5_s42
+  0.005  own:v2_init_teacher_k5_s42
+  split-half held-out 0.96129
+  split-half held-out 0.961922
