@@ -8,6 +8,8 @@ K = int(os.environ.get("K", 5)); name = f"v5_xgb_d{DEPTH}_s{SEED}" + (f"_k{K}" i
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
 if os.environ.get("EXTRA"):
     from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
+if os.environ.get("HAM"):
+    from features import ham; E, ET = ham(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_ham"
 if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("2" if os.environ["TEACH"] == "2" else "")
 P = dict(n_estimators=20000, learning_rate=0.02, max_depth=DEPTH, min_child_weight=20, subsample=0.8, colsample_bytree=0.5, reg_lambda=5,

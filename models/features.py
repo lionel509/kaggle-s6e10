@@ -118,3 +118,61 @@ def teachers(tr, te, og, og_y, cache="data/feat_teachers.parquet"):
     out["t_cat8"] = lg(CatBoostClassifier(iterations=2000, learning_rate=0.05, depth=8, verbose=0, thread_count=8, random_seed=0).fit(Os, og_y, cat_features=CAT).predict_proba(As)[:, 1])
     out.to_parquet(cache)
     return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+
+
+def ham_core(Q, O, oy, og_grp=None, q_grp=None, k=1, chunk=2000):
+    """Per query rating pattern: Hamming distance to the nearest original pattern, and the original satisfied-rate / count
+    among originals at that distance, within <=1 and <=2. With groups (0..k-1), also the rate at <=1 among same-group originals.
+    d<=2 by enumerating every original's 1- and 2-cell variants and looking them up among the query patterns; brute force only for d>=3."""
+    from itertools import combinations
+    og_grp = np.zeros(len(O), int) if og_grp is None else og_grp; q_grp = np.zeros(len(Q), int) if q_grp is None else q_grp
+    V, m = int(max(O.max(), Q.max())) + 1, Q.shape[1]; pw = V ** np.arange(m, dtype=np.int64)
+    oc, oinv = np.unique(O.astype(np.int64) @ pw, return_inverse=True); oinv = oinv.ravel()
+    C = np.zeros((len(oc), k)); S = C.copy(); np.add.at(C, (oinv, og_grp), 1); np.add.at(S, (oinv, og_grp), oy)
+    up, qinv = np.unique(Q.astype(np.int64) @ pw, return_inverse=True); qinv = qinv.ravel()
+    D = np.array([(oc // pw[j]) % V for j in range(m)]).T  # unique original patterns, digits
+    N = np.zeros((3, len(up), k)); R = N.copy()  # count / satisfied at exact distance 0,1,2, per group
+
+    def hit(code, d):
+        ix = np.searchsorted(up, code).clip(0, len(up) - 1); ok = up[ix] == code
+        np.add.at(N[d], ix[ok], C[ok]); np.add.at(R[d], ix[ok], S[ok])
+    hit(oc, 0)
+    for j in range(m):
+        for v in range(1, V): hit(oc + ((D[:, j] + v) % V - D[:, j]) * pw[j], 1)
+    for a, b in combinations(range(m), 2):
+        for u in range(1, V):
+            for v in range(1, V): hit(oc + ((D[:, a] + u) % V - D[:, a]) * pw[a] + ((D[:, b] + v) % V - D[:, b]) * pw[b], 2)
+    n, r = N.sum(2).T, R.sum(2).T; has = n > 0
+    dmin = np.where(has.any(1), has.argmax(1), 3).astype(np.float32); nmin = n[np.arange(len(up)), dmin.clip(0, 2).astype(int)]
+    rmin = r[np.arange(len(up)), dmin.clip(0, 2).astype(int)]
+    far = np.where(dmin == 3)[0]; c, s = C.sum(1), S.sum(1); U = D.astype(np.uint8)
+    QD = np.array([(up[far] // pw[j]) % V for j in range(m)]).T.astype(np.uint8)
+    for i in range(0, len(far), chunk):
+        q = QD[i:i + chunk]; d = np.zeros((len(q), len(U)), np.uint8)
+        for j in range(m): d += q[:, j, None] != U[None, :, j]
+        mn = d.min(1); w = (d == mn[:, None]).astype(np.float32); f = far[i:i + chunk]
+        dmin[f], nmin[f], rmin[f] = mn, w @ c, w @ s
+    g = (np.arange(len(Q)), q_grp)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        out = {"ham_min": dmin[qinv], "ham_rate_min": (rmin / nmin)[qinv], "ham_n_min": nmin[qinv],
+               "ham_rate_1": (r[:, :2].sum(1) / n[:, :2].sum(1))[qinv], "ham_n_1": n[:, :2].sum(1)[qinv],
+               "ham_rate_2": (r.sum(1) / n.sum(1))[qinv], "ham_n_2": n.sum(1)[qinv]}
+        if k > 1:
+            n1, r1 = N[:2].sum(0)[qinv][g], R[:2].sum(0)[qinv][g]
+            out["ham_rate_1_grp"], out["ham_n_1_grp"] = r1 / n1, n1
+    return {a: b.astype(np.float32) for a, b in out.items()}
+
+def ham(tr, te, cache="data/feat_ham.parquet"):
+    """Near-copy features: train/test rating vectors are original rows with a few cells changed (d0 22%, d1 44%, d2 25%)."""
+    import os
+    if not os.path.exists(cache):
+        og = pd.concat([pd.read_csv("data/orig/train.csv"), pd.read_csv("data/orig/test.csv")])
+        al = pd.concat([tr, te], ignore_index=True)
+        rat = [c for c in al.columns if al[c].dtype.kind == "i" and c not in ("id", AGE, FD, DD)]
+        key = lambda d: (d["Class"].astype(str) + "|" + d["Type of Travel"].astype(str))
+        cats = {v: i for i, v in enumerate(sorted(set(key(og))))}
+        f = ham_core(al[rat].values, og[rat].values, (og.satisfaction == "satisfied").values.astype(float),
+                     key(og).map(cats).values, key(al).map(cats).values, k=len(cats))
+        pd.DataFrame(f).to_parquet(cache)
+    out = pd.read_parquet(cache)
+    return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
