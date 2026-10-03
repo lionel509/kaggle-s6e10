@@ -1,0 +1,15 @@
+{
+ "oof": 0.961647651062057,
+ "weights": {
+  "own:v2_init_te_fd_k5_s42": 0.009999999999999998,
+  "own:v2_init_teacher_k5_s42": 0.005,
+  "own:v3b_realmlp_e6_n8_s42_k10_teach": 0.095,
+  "own:v3b_realmlp_e6_n8_s42_k20_teach": 0.29500000000000004,
+  "own:v4_cat_s42_extra": 0.060000000000000005,
+  "own:v4_cat_s42_k10_extra_teach": 0.08499999999999999,
+  "own:v4_cat_s42_k20_extra_teach": 0.205,
+  "own:v5_xgb_d8_s42_k10_extra_teach": 0.04,
+  "own:v5_xgb_d8_s42_k20_extra_teach": 0.20000000000000007,
+  "own:v5_xgb_d8_s42": 0.005
+ }
+}
