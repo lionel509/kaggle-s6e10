@@ -13,7 +13,7 @@ if os.environ.get("HAM"):
 if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("2" if os.environ["TEACH"] == "2" else "")
 P = dict(n_estimators=20000, learning_rate=0.02, max_depth=DEPTH, min_child_weight=20, subsample=0.8, colsample_bytree=0.5, reg_lambda=5,
-         tree_method="hist", enable_categorical=True, max_cat_to_onehot=4, eval_metric="auc", early_stopping_rounds=300, random_state=SEED, n_jobs=8)
+         tree_method="hist", enable_categorical=True, max_cat_to_onehot=4, eval_metric="auc", early_stopping_rounds=300, random_state=SEED, n_jobs=int(os.environ.get("THREADS", 8)))
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
 for i, (a, b) in enumerate(folds(y, K)):
     Xa, Xb, Xt = add_te(X.iloc[a], X.iloc[b], XT, y[a])
