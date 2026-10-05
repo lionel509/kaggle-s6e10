@@ -15,6 +15,12 @@ for D, src in ((X, tr), (XT, te)):
     D["fd_c"], D["age_c"] = src[FD].astype(str).values, src[AGE].astype(str).values
     for c in CAT: D[c] = D[c].astype(str)
 cats = CAT + ["fd_c", "age_c"]
+if os.environ.get("CROSS"):  # 13 ratings x Class / Type of Travel / Customer Type as native cats (Shelton Wang's 39 crosses, +0.00028 on a bare CatBoost)
+    R = [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() == 5 and c != "id"]
+    for D, src in ((X, tr), (XT, te)):
+        for r in R:
+            for g in ("Class", "Type of Travel", "Customer Type"): D[f"{r}__x__{g}"] = src[r].astype(str).values + "|" + src[g].astype(str).values
+    cats += [f"{r}__x__{g}" for r in R for g in ("Class", "Type of Travel", "Customer Type")]; name += "_cross"; print("crosses", len(R) * 3, flush=True)
 P = dict(iterations=20000, learning_rate=0.06, depth=7, l2_leaf_reg=5, eval_metric="AUC", od_type="Iter", od_wait=300, random_seed=SEED, thread_count=int(os.environ.get("THREADS", 8)), verbose=0)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
 for i, (a, b) in enumerate(folds(y, K)):
