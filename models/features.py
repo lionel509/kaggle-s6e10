@@ -176,3 +176,28 @@ def ham(tr, te, cache="data/feat_ham.parquet"):
         pd.DataFrame(f).to_parquet(cache)
     out = pd.read_parquet(cache)
     return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+
+
+def aux(tr, te, cache="data/feat_aux.parquet", k=2, threads=4):
+    """Label-free auxiliary tasks (goodpjw2008 Part 4): predict each rating / categorical from the other 20 columns,
+    cross-fitted over train+test. Keeps the expected rating, the probability of the actual value, and the row's pseudo-log-likelihood."""
+    import os
+    if os.path.exists(cache):
+        out = pd.read_parquet(cache); return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+    import lightgbm as lgb
+    raw = [c for c in tr.columns if c != "id"]; al = pd.concat([tr, te], ignore_index=True)[raw]
+    rat = [c for c in raw if al[c].dtype.kind == "i" and c not in (AGE, FD, DD)]
+    out = pd.DataFrame(index=al.index); logp = np.zeros(len(al))
+    parts = np.random.RandomState(0).randint(0, k, len(al))
+    for c in rat + ["Class", "Type of Travel", "Customer Type"]:
+        vals, yc = np.unique(al[c].astype(str) if c in CAT else al[c], return_inverse=True)
+        X = al.drop(columns=[c]); P = np.zeros((len(al), len(vals)))
+        for f in range(k):
+            m = lgb.LGBMClassifier(n_estimators=250, learning_rate=0.1, num_leaves=63, subsample=0.8, subsample_freq=1, colsample_bytree=0.8, n_jobs=threads, verbose=-1, random_state=0)
+            m.fit(X[parts != f], yc[parts != f]); P[parts == f] = m.predict_proba(X[parts == f])
+        if c in rat: out["aux_ev_" + c] = (P * vals.astype(float)).sum(1).astype("float32")
+        p = np.clip(P[np.arange(len(al)), yc], 1e-6, 1); out["aux_p_" + c] = p.astype("float32"); logp += np.log(p)
+        print("aux", c, flush=True)
+    out["aux_sum_logp"] = logp.astype("float32")
+    out.to_parquet(cache)
+    return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)

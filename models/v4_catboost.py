@@ -9,6 +9,8 @@ SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 42; name = f"v4_cat_s{SEED}"; 
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
 if os.environ.get("EXTRA"):
     from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
+if os.environ.get("AUX"):
+    from features import aux; E, ET = aux(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_aux"
 if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("2" if os.environ["TEACH"] == "2" else "")
 for D, src in ((X, tr), (XT, te)):
@@ -21,6 +23,13 @@ if os.environ.get("CROSS"):  # 13 ratings x Class / Type of Travel / Customer Ty
         for r in R:
             for g in ("Class", "Type of Travel", "Customer Type"): D[f"{r}__x__{g}"] = src[r].astype(str).values + "|" + src[g].astype(str).values
     cats += [f"{r}__x__{g}" for r in R for g in ("Class", "Type of Travel", "Customer Type")]; name += "_cross"; print("crosses", len(R) * 3, flush=True)
+if os.environ.get("BLOCK"):  # a01 pairs: the original survey's two factor blocks + the full 13-rating pattern, as native cats (ordered TS on the competition labels)
+    B = {"blk_conv": ["Inflight wifi service", "Gate location", "Departure/Arrival time convenient", "Ease of Online booking"],
+         "blk_comf": ["Food and drink", "Inflight entertainment", "Cleanliness", "Seat comfort"],
+         "blk_all": [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() == 5 and c != "id"]}
+    for D, src in ((X, tr), (XT, te)):
+        for n, cols in B.items(): D[n] = src[cols].astype(str).agg("".join, axis=1).values
+    cats += list(B); name += "_block"
 P = dict(iterations=20000, learning_rate=0.06, depth=7, l2_leaf_reg=5, eval_metric="AUC", od_type="Iter", od_wait=300, random_seed=SEED, thread_count=int(os.environ.get("THREADS", 8)), verbose=0)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
 for i, (a, b) in enumerate(folds(y, K)):
