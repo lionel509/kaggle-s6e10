@@ -7,6 +7,8 @@ K = int(os.environ.get("K", 5)); name = "v1_lgb" + (f"_k{K}" if K != 5 else "");
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y)
 if os.environ.get("EXTRA"):
     from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
+if os.environ.get("AUX"):
+    from features import aux; E, ET = aux(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_aux"
 if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach"
 if os.environ.get("RES"):  # route residuals: each passenger minus the mean of their Flight Distance value (busyaprime / evgendvorkin "fdd_")
