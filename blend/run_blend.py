@@ -1,5 +1,5 @@
 """Blend own + public members: fold-rank probit, coordinate-descent weights, split-half check vs the incumbent set.
-Usage: python blend/run_blend.py <out_name> [--own-only]"""
+Usage: python blend/run_blend.py <out_name> [--own-only] [--drop REGEX]"""
 import sys, glob, json, numpy as np, pandas as pd
 from scipy.stats import norm
 from sklearn.metrics import roc_auc_score
@@ -17,7 +17,9 @@ for f in sorted(glob.glob("oof/*_test.npy")):
     n = f[4:-9]; oof["own:" + n], tst["own:" + n] = np.load(f"oof/{n}.npy"), np.load(f)
 if "--own-only" not in sys.argv:
     po, pt = load_public(tr.id.values, te.id.values); oof |= po; tst |= pt
-names = list(oof); M = np.c_[[oof[n] for n in names]].T; T = np.c_[[tst[n] for n in names]].T
+import re  # --drop REGEX: leave out members (family-restricted hedge blends)
+drop = sys.argv[sys.argv.index("--drop") + 1] if "--drop" in sys.argv else None
+names = [n for n in oof if not (drop and re.search(drop, n))]; M = np.c_[[oof[n] for n in names]].T; T = np.c_[[tst[n] for n in names]].T
 for n in names: print(f"  {roc_auc_score(y, oof[n]):.6f}  {n}")
 Z = fold_rank_probit(M, fold); w = fit_weights(Z, y); auc = roc_auc_score(y, Z @ w)
 print(f"\nBLEND OOF {auc:.6f}"); [print(f"  {w[i]:.3f}  {names[i]}") for i in np.argsort(-w) if w[i] > 0]

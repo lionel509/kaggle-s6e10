@@ -1,0 +1,48 @@
+{
+ "name": "v1_lgb_extra_teach_nw0",
+ "oof": 0.95457431702963,
+ "folds": [
+  0.9552032846261183,
+  0.9544821553401498,
+  0.9560320387891946,
+  0.954988872969103,
+  0.9551583120005278
+ ],
+ "iters": [
+  81,
+  80,
+  82,
+  81,
+  82
+ ],
+ "params": {
+  "n_estimators": 10000,
+  "learning_rate": 0.03,
+  "num_leaves": 63,
+  "min_child_samples": 100,
+  "subsample": 0.8,
+  "subsample_freq": 1,
+  "colsample_bytree": 0.5,
+  "reg_lambda": 3,
+  "verbose": -1,
+  "random_state": 42,
+  "n_jobs": 8
+ },
+ "top_imp": {
+  "teacher": 340,
+  "te_fd_cls": 308,
+  "t_lgb1500": 264,
+  "te_age_cls_tt_ct": 220,
+  "t_cat8": 220,
+  "te_fd_tt": 199,
+  "inflight_service_hat": 191,
+  "te_fd": 176,
+  "rt_Inflight wifi service": 175,
+  "t_xgb8": 166,
+  "Flight Distance_om": 151,
+  "rt_Class": 116,
+  "Ease of Online booking_cnt": 104,
+  "Flight Distance": 100,
+  "Inflight wifi service": 94
+ }
+}

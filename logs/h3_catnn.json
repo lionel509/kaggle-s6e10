@@ -1,0 +1,11 @@
+{
+ "oof": 0.9616625711045053,
+ "weights": {
+  "own:v3b_realmlp_e6_n8_s42_k10_teach": 0.1,
+  "own:v3b_realmlp_e6_n8_s42_k20_teach": 0.30500000000000005,
+  "own:v4_cat_s1_k20_extra_teach": 0.12500000000000003,
+  "own:v4_cat_s42_extra_teach_cross": 0.24500000000000005,
+  "own:v4_cat_s42_k10_extra_teach": 0.065,
+  "own:v4_cat_s42_k20_extra_teach": 0.16
+ }
+}

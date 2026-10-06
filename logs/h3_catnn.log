@@ -1,0 +1,24 @@
+  0.960596  own:v3_realmlp_e6_n4_s42
+  0.961038  own:v3b_realmlp_e6_n8_s1
+  0.961308  own:v3b_realmlp_e6_n8_s42_k10_teach
+  0.961372  own:v3b_realmlp_e6_n8_s42_k20_teach
+  0.961161  own:v3b_realmlp_e6_n8_s42_teach
+  0.961063  own:v3b_realmlp_e6_n8_s42
+  0.961099  own:v4_cat_s1_extra
+  0.961340  own:v4_cat_s1_k20_extra_teach
+  0.961336  own:v4_cat_s42_extra_teach_cross
+  0.961154  own:v4_cat_s42_extra_teach
+  0.961110  own:v4_cat_s42_extra
+  0.961300  own:v4_cat_s42_k10_extra_teach
+  0.961361  own:v4_cat_s42_k20_extra_teach
+  0.961072  own:v4_cat_s42
+
+BLEND OOF 0.961663
+  0.305  own:v3b_realmlp_e6_n8_s42_k20_teach
+  0.245  own:v4_cat_s42_extra_teach_cross
+  0.160  own:v4_cat_s42_k20_extra_teach
+  0.125  own:v4_cat_s1_k20_extra_teach
+  0.100  own:v3b_realmlp_e6_n8_s42_k10_teach
+  0.065  own:v4_cat_s42_k10_extra_teach
+  split-half held-out 0.961345
+  split-half held-out 0.96196

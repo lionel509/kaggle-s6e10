@@ -24,10 +24,15 @@ if os.environ.get("CROSS"):  # 13 ratings x Class / Type of Travel / Customer Ty
 P = dict(iterations=20000, learning_rate=0.06, depth=7, l2_leaf_reg=5, eval_metric="AUC", od_type="Iter", od_wait=300, random_seed=SEED, thread_count=int(os.environ.get("THREADS", 8)), verbose=0)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
 for i, (a, b) in enumerate(folds(y, K)):
-    Xa, Xb, Xt = add_te(X.iloc[a], X.iloc[b], XT, y[a])
-    m = CatBoostClassifier(**P).fit(Xa, y[a], cat_features=cats, eval_set=(Xb, y[b]), use_best_model=True)
-    oof[b] = m.predict_proba(Xb)[:, 1]; pt += m.predict_proba(Xt)[:, 1] / K
-    scores.append(roc_auc_score(y[b], oof[b])); its.append(m.best_iteration_); print(f"fold {i} {scores[-1]:.6f} it {its[-1]} ({time.time()-t0:.0f}s)", flush=True)
+    ck = f"oof/ckpt/{name}_f{i}.npz"  # per-fold checkpoint: a killed k20 run resumes instead of restarting
+    if os.path.exists(ck): z = np.load(ck); ob, ptb, it = z["ob"], z["pt"], int(z["it"])
+    else:
+        Xa, Xb, Xt = add_te(X.iloc[a], X.iloc[b], XT, y[a])
+        m = CatBoostClassifier(**P).fit(Xa, y[a], cat_features=cats, eval_set=(Xb, y[b]), use_best_model=True)
+        ob, ptb, it = m.predict_proba(Xb)[:, 1], m.predict_proba(Xt)[:, 1], m.best_iteration_
+        os.makedirs("oof/ckpt", exist_ok=True); np.savez(ck, ob=ob, pt=ptb, it=it)
+    oof[b] = ob; pt += ptb / K
+    scores.append(roc_auc_score(y[b], oof[b])); its.append(it); print(f"fold {i} {scores[-1]:.6f} it {its[-1]} ({time.time()-t0:.0f}s)", flush=True)
 auc = roc_auc_score(y, oof); print(f"OOF {auc:.6f}  ({time.time()-t0:.0f}s)")
 np.save(f"oof/{name}.npy", oof); np.save(f"oof/{name}_test.npy", pt)
 json.dump({"name": name, "oof": auc, "folds": scores, "iters": its, "params": P}, open(f"logs/{name}.json", "w"), indent=1, default=int)

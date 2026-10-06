@@ -9,6 +9,11 @@ if os.environ.get("EXTRA"):
     from features import extra; E, ET = extra(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_extra"
 if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach"
+if os.environ.get("RES"):  # route residuals: each passenger minus the mean of their Flight Distance value (busyaprime / evgendvorkin "fdd_")
+    for D in (X, XT):
+        for c in [c for c in D.columns if c.startswith("rt_")]:
+            v = D[c[3:]]; D["rd_" + c[3:]] = ((v.cat.codes if v.dtype.name == "category" else v) - D[c]).astype("float32")
+    name += "_res"
 print("features", X.shape[1], "teacher AUC on train", round(roc_auc_score(y, X.teacher), 6), flush=True)
 oof, pt, scores, its = np.zeros(len(y)), np.zeros(len(XT)), [], []
 P = dict(n_estimators=10000, learning_rate=0.03, num_leaves=63, min_child_samples=100, subsample=0.8, subsample_freq=1, colsample_bytree=0.5, reg_lambda=3, verbose=-1, random_state=42, n_jobs=int(os.environ.get("THREADS", 8)))

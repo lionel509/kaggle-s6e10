@@ -1,0 +1,13 @@
+crosses 39
+fold 0 0.962041 it 1474 (1600s)
+fold 1 0.961033 it 1852 (3045s)
+fold 2 0.961760 it 1063 (6532s)
+fold 3 0.961055 it 2353 (8909s)
+fold 4 0.959843 it 1745 (10531s)
+fold 5 0.960758 it 1738 (12029s)
+fold 6 0.958596 it 1339 (13177s)
+fold 7 0.963285 it 1514 (14217s)
+fold 8 0.961077 it 1520 (15238s)
+--- relaunch Tue Oct  6 04:03:04 UTC 2026 with per-fold checkpoints (previous run died silently after fold 8)
+crosses 39
+--- stopped Tue Oct  6 04:12:58 UTC 2026 on owner instruction (no training until he says); relaunch: zsh scripts/cross_k20.sh (resumes from oof/ckpt)
