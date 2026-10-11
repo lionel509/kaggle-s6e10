@@ -5,8 +5,12 @@
 # Never submits to Kaggle. Re-runnable: runs whose logs/<name>.json exists are skipped.
 # Kill switch: touch logs/queue_i3.stop (skips the remaining training; blends and report still run).
 # Launch once merged: nohup zsh scripts/queue_i3.sh >/dev/null 2>&1 & disown
+# Stop now: kill -TERM <pid in logs/queue_i3.lock.d/pid>: kills the running step's process group, releases the lock, exits.
+# A is finished when logs/run_A.done exists and the PID in logs/run_A.pid is gone. A relaunched A must rewrite logs/run_A.pid.
 cd "${0:A:h}/.."
 L=logs/queue_i3.log
+LOCK=logs/queue_i3.lock.d
+STEP_PG=
 PY=.venv/bin/python        # never uv run: a signal must reach python itself
 TABM_K5_SECS=14400 TABM_K20_SECS=43200
 A_CAT=v4_cat_s42_k20_extra_aux_teach_cross_block
@@ -23,18 +27,39 @@ bx=0 bm=0
 qlog() { print -r -- "$(date '+%F %T') $*" >> $L; }
 have() { [[ -f logs/$1.json ]]; }
 wait_render() { while pgrep -f scripts/overnight.py >/dev/null; do sleep 60; done; }
-# run_A.done is not enough: a relaunched A or an orphan from a killed queue can still be training. Machine-wide on purpose (RAM is).
-BUSY='logs/run_A\.sh|[Pp]ython[0-9.]* .*models/[a-z0-9_]+\.py'
-wait_busy() { local n=0; while pgrep -f "$BUSY" >/dev/null; do (( n++ )) || qlog "waiting: training process alive"; sleep 60; done; }
+# A is finished when logs/run_A.done exists and the PID in logs/run_A.pid (the run_A.sh launcher) is gone.
+# A missing pid file, or one without a positive PID, counts as gone. Never reads the process list.
+a_done() {
+  [[ -f logs/run_A.done ]] || return 1
+  local p; { p=$(<logs/run_A.pid) } 2>/dev/null
+  [[ $p == <1-> ]] || return 0
+  ! kill -0 $p 2>/dev/null
+}
+# wait_A: returns 0 once A is finished, 1 as soon as the stop file exists. Logs once an hour while it waits.
+wait_A() {
+  local n=0 p
+  until a_done; do
+    [[ -e logs/queue_i3.stop ]] && return 1
+    { p=$(<logs/run_A.pid) } 2>/dev/null
+    (( n++ % 12 )) || qlog "waiting for A: run_A.done $([[ -f logs/run_A.done ]] && print -n present || print -n absent), run_A.pid ${p:-none}"
+    sleep 300
+  done
+}
 
 # step <stem> [VAR=v ...] cmd...   logs to logs/<stem>.log
 step() {
-  wait_busy
   local stem=$1; shift
+  wait_A
   if [[ -e logs/queue_i3.stop ]]; then qlog "SKIP $stem (stop file)"; return 1; fi
   qlog "start $stem"
-  env "$@" >> logs/$stem.log 2>&1
+  # own process group, backgrounded so a TERM/INT trap runs while we wait (zsh defers traps during a foreground child)
+  perl -e 'setpgrp; exec @ARGV or die "exec $ARGV[0]: $!\n"' env "$@" >> logs/$stem.log 2>&1 &
+  STEP_PG=$!
+  print $STEP_PG > $LOCK/step
+  wait $STEP_PG
   local rc=$?
+  STEP_PG=
+  rm -f $LOCK/step
   if (( rc == 0 )); then qlog "ok $stem"; return 0; fi
   qlog "FAILED $stem rc=$rc: $(tail -n 1 logs/$stem.log)"
   return 1
@@ -77,21 +102,51 @@ teach() {
   return 0
 }
 
-# Single instance: flock on logs/queue_i3.lock, released when the process dies.
-: >> logs/queue_i3.lock
-zmodload zsh/system
-zsystem flock -t 0 logs/queue_i3.lock 2>/dev/null || { print -r -- "$(date '+%F %T') another queue holds logs/queue_i3.lock: exit" >> $L; exit 1; }
+# Single instance: $LOCK/pid holds this queue's PID, $LOCK/step the running step's process group. mkdir is atomic.
+# The lock is stale only when that PID is dead and that group has no live process: never train over an orphaned step.
+lock_live() {
+  local p g
+  { p=$(<$LOCK/pid) } 2>/dev/null
+  if [[ $p != <1-> ]]; then sleep 1; { p=$(<$LOCK/pid) } 2>/dev/null; fi  # the holder writes its PID just after mkdir
+  [[ $p == <1-> ]] && kill -0 $p 2>/dev/null && return 0
+  { g=$(<$LOCK/step) } 2>/dev/null
+  [[ $g == <1-> ]] && kill -0 -- -$g 2>/dev/null
+}
+take_lock() {
+  mkdir $LOCK 2>/dev/null && { print $$ > $LOCK/pid; return 0; }
+  lock_live && return 1
+  mkdir $LOCK.takeover 2>/dev/null || return 1  # two relaunches on one stale lock: only one clears it
+  if lock_live; then rmdir $LOCK.takeover; return 1; fi
+  qlog "stale lock: taking over"
+  rm -rf $LOCK
+  mkdir $LOCK 2>/dev/null && print $$ > $LOCK/pid
+  local rc=$?
+  rmdir $LOCK.takeover
+  return $rc
+}
+release_lock() { local p; { p=$(<$LOCK/pid) } 2>/dev/null; [[ $p == $$ ]] && rm -rf $LOCK; }
+on_signal() {
+  trap '' TERM INT
+  local g=$STEP_PG
+  if [[ -n $g ]]; then
+    kill -TERM -- -$g 2>/dev/null; kill -TERM $g 2>/dev/null  # the second covers a child that has not reached setpgrp
+    wait $g 2>/dev/null
+  fi
+  release_lock
+  qlog "signal $1: killed step group ${g:-none}, lock released, exit"
+  exit $2
+}
+take_lock || { qlog "another queue holds $LOCK (pid $(cat $LOCK/pid 2>/dev/null), step $(cat $LOCK/step 2>/dev/null), takeover dir $([[ -d $LOCK.takeover ]] && print -n present || print -n absent)): exit"; exit 1; }
+trap release_lock EXIT
+trap 'on_signal TERM 143' TERM
+trap 'on_signal INT 130' INT
 
 # Nothing the launching shell exports reaches a step: each step sets what it needs.
 unset K SMOKE LEAVE SOFT BLKTE REFIT TEACH EXTRA AUX HAM CROSS BLOCK DEVICE
 
-# (0) Wait for A: logs/run_A.done only, polled every 5 min. A stop file during the wait ends the queue with nothing run.
+# (0) Wait for A (see a_done). A stop file during the wait ends the queue with nothing run.
 qlog "queue start"
-until [[ -f logs/run_A.done ]]; do
-  if [[ -e logs/queue_i3.stop ]]; then qlog "stop file before A finished: exit"; exit 0; fi
-  sleep 300
-done
-wait_busy
+wait_A || { qlog "stop file before A finished: exit"; exit 0; }
 qlog "A finished: cat $(have $A_CAT && echo ok || echo MISSING), realmlp $(have $A_MLP && echo ok || echo MISSING)"
 
 # (B) soft labels. Teachers first (pairs, then singles for K=20), then the k5 students.
@@ -171,7 +226,7 @@ fi
 
 # Blends: these don't go through step, so they run even when the stop file exists.
 NEW='_soft|_teach3|_blkte|v8_tabm'
-wait_busy
+wait_A
 rm -f logs/q3_base.json logs/q3_all.json
 $PY blend/run_blend.py q3_base --own-only --drop "$NEW" > logs/q3_base.log 2>&1 &
 if (( $#DROP )); then
