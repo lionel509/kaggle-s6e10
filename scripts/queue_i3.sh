@@ -73,9 +73,12 @@ teach() {
   return 0
 }
 
-# (0) Wait for A: logs/run_A.done, or the RealMLP k20 JSON, polled every 5 min.
+# (0) Wait for A: logs/run_A.done only, polled every 5 min. A stop file during the wait ends the queue with nothing run.
 qlog "queue start"
-until [[ -f logs/run_A.done ]] || have $A_MLP || [[ -e logs/queue_i3.stop ]]; do sleep 300; done
+until [[ -f logs/run_A.done ]]; do
+  if [[ -e logs/queue_i3.stop ]]; then qlog "stop file before A finished: exit"; exit 0; fi
+  sleep 300
+done
 qlog "A finished: cat $(have $A_CAT && echo ok || echo MISSING), realmlp $(have $A_MLP && echo ok || echo MISSING)"
 
 # (B) soft labels. Teachers first (pairs, then singles for K=20), then the k5 students.
