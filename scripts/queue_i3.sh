@@ -124,7 +124,7 @@ take_lock() {
   rmdir $LOCK.takeover
   return $rc
 }
-release_lock() { local p; { p=$(<$LOCK/pid) } 2>/dev/null; [[ $p == $$ ]] && rm -rf $LOCK; }
+release_lock() { local p g; { p=$(<$LOCK/pid); g=$(<$LOCK/step) } 2>/dev/null; [[ $g == <1-> ]] && kill -0 -- -$g 2>/dev/null && return; [[ $p == $$ ]] && rm -rf $LOCK; }
 on_signal() {
   trap '' TERM INT
   local g=$STEP_PG i
