@@ -11,6 +11,7 @@ SMOKE = int(os.environ.get("SMOKE", 0)); R = "smoke/" if SMOKE else ""
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y); E, ET = extra(tr, te)
 X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
 E, ET = aux(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
+os.environ["TEACH"] = "1"  # the name is pinned to *_aux_teach: an exported TEACH must not change this frame
 E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
 for d in ("oof/ckpt", "logs", "subs/hedge", "data/soft"): os.makedirs(R + d, exist_ok=True)
 twins = [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() <= 5]

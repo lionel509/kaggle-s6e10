@@ -78,6 +78,9 @@ teach() {
 zmodload zsh/system
 zsystem flock -t 0 logs/queue_i3.lock 2>/dev/null || { print -r -- "$(date '+%F %T') another queue holds logs/queue_i3.lock: exit" >> $L; exit 1; }
 
+# Nothing the launching shell exports reaches a step: each step sets what it needs.
+unset K SMOKE LEAVE SOFT BLKTE REFIT TEACH EXTRA AUX HAM CROSS BLOCK DEVICE
+
 # (0) Wait for A: logs/run_A.done only, polled every 5 min. A stop file during the wait ends the queue with nothing run.
 qlog "queue start"
 until [[ -f logs/run_A.done ]]; do
