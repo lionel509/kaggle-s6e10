@@ -7,7 +7,7 @@ sys.path.insert(0, "models"); from features import load, folds, label_free, add_
 
 SEED = int(sys.argv[1]) if len(sys.argv) > 1 else 42
 K = int(os.environ.get("K", 5)); name = f"v8_tabm_s{SEED}" + (f"_k{K}" if K != 5 else "") + "_aux_teach"; t0 = time.time()
-SMOKE = int(os.environ.get("SMOKE", 0)); R = "smoke/" if SMOKE else ""
+SMOKE = int(os.environ.get("SMOKE") or 0); R = "smoke/" if SMOKE else ""
 tr, te, og, y, og_y = load(); X, XT = label_free(tr, te, og, og_y); E, ET = extra(tr, te)
 X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)
 E, ET = aux(tr, te); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1)

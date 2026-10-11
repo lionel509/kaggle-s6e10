@@ -31,7 +31,7 @@ if os.environ.get("BLOCK"):  # a01 pairs: the original survey's two factor block
     for D, src in ((X, tr), (XT, te)):
         for n, cols in B.items(): D[n] = src[cols].astype(str).agg("".join, axis=1).values
     cats += list(B); name += "_block"
-SMOKE = int(os.environ.get("SMOKE", 0)); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
+SMOKE = int(os.environ.get("SMOKE") or 0); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
 if SMOKE: X, XT, y = X.iloc[:SMOKE].reset_index(drop=True), XT.iloc[:SMOKE // 5].reset_index(drop=True), y[:SMOKE]
 for d in ("oof/ckpt", "logs", "subs/hedge", "data/soft"): os.makedirs(R + d, exist_ok=True)
 P = dict(iterations=50 if SMOKE else 20000, learning_rate=0.06, depth=7, l2_leaf_reg=5, eval_metric="AUC", od_type="Iter", od_wait=300, random_seed=SEED, thread_count=int(os.environ.get("THREADS", 8)), verbose=0)

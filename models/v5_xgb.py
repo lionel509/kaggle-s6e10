@@ -16,7 +16,7 @@ if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("" if os.environ["TEACH"] == "1" else os.environ["TEACH"])
 if os.environ.get("BLKTE"): name += "_blkte"
 SOFT = bool(os.environ.get("SOFT")); name += "_soft" if SOFT else ""
-SMOKE = int(os.environ.get("SMOKE", 0)); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
+SMOKE = int(os.environ.get("SMOKE") or 0); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
 if SMOKE: X, XT, y = X.iloc[:SMOKE].reset_index(drop=True), XT.iloc[:SMOKE // 5].reset_index(drop=True), y[:SMOKE]
 for d in ("oof/ckpt", "logs", "subs/hedge", "data/soft"): os.makedirs(R + d, exist_ok=True)
 P = dict(n_estimators=50 if SMOKE else 20000, learning_rate=0.02, max_depth=DEPTH, min_child_weight=20, subsample=0.8, colsample_bytree=0.5, reg_lambda=5,

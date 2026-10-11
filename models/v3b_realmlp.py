@@ -15,7 +15,7 @@ if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("" if os.environ["TEACH"] == "1" else os.environ["TEACH"])
 if os.environ.get("BLKTE"): name += "_blkte"
 SOFT = bool(os.environ.get("SOFT")); name += "_soft" if SOFT else ""
-SMOKE = int(os.environ.get("SMOKE", 0)); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
+SMOKE = int(os.environ.get("SMOKE") or 0); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
 twins = [FD, AGE, DD, AD] + [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() <= 5]
 for D, src in ((X, tr), (XT, te)):
     D["teacher"] = np.log(D.teacher.clip(1e-6, 1 - 1e-6) / (1 - D.teacher.clip(1e-6, 1 - 1e-6)))
