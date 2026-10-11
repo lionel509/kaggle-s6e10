@@ -146,9 +146,12 @@ refit v3b_realmlp_e6_n8_s42_k20_aux_teach_blkte e_refit_mlp_blkte K=20 $MF BLKTE
 wait_render
 if step f_preflight SMOKE=2000 $PY models/v8_tabm.py; then
   if have v8_tabm_s42_aux_teach || { wait_render; tstep $TABM_K5_SECS f_tabm_k5 $PY models/v8_tabm.py; }; then
-    $PY blend/run_blend.py q3_base --own-only --drop '_soft|_teach3|_blkte|v8_tabm' > logs/q3_base.log 2>&1
-    $PY blend/run_blend.py q3_f --own-only --drop '_soft|_teach3|_blkte|v8_tabm_s42_k20' > logs/q3_f.log 2>&1
-    if bgate q3_f q3_base; then
+    rm -f logs/q3_base.json logs/q3_f.json  # a failed blend must not leave the last run's JSON for the gate
+    $PY blend/run_blend.py q3_base --own-only --drop '_soft|_teach3|_blkte|v8_tabm' > logs/q3_base.log 2>&1; rc1=$?
+    $PY blend/run_blend.py q3_f --own-only --drop '_soft|_teach3|_blkte|v8_tabm_s42_k20' > logs/q3_f.log 2>&1; rc2=$?
+    if (( rc1 || rc2 )); then
+      qlog "F blend failed: F dropped"; DROP+=(v8_tabm)
+    elif bgate q3_f q3_base; then
       wait_render
       have v8_tabm_s42_k20_aux_teach || tstep $TABM_K20_SECS f_tabm_k20 K=20 $PY models/v8_tabm.py
     else
@@ -163,6 +166,7 @@ fi
 
 # Blends: these don't go through step, so they run even when the stop file exists.
 NEW='_soft|_teach3|_blkte|v8_tabm'
+rm -f logs/q3_base.json logs/q3_all.json
 $PY blend/run_blend.py q3_base --own-only --drop "$NEW" > logs/q3_base.log 2>&1 &
 if (( $#DROP )); then
   $PY blend/run_blend.py q3_all --own-only --drop "${(j:|:)DROP}" > logs/q3_all.log 2>&1 &
