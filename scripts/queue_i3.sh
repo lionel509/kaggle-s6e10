@@ -73,6 +73,11 @@ teach() {
   return 0
 }
 
+# Single instance: flock on logs/queue_i3.lock, released when the process dies.
+: >> logs/queue_i3.lock
+zmodload zsh/system
+zsystem flock -t 0 logs/queue_i3.lock 2>/dev/null || { print -r -- "$(date '+%F %T') another queue holds logs/queue_i3.lock: exit" >> $L; exit 1; }
+
 # (0) Wait for A: logs/run_A.done only, polled every 5 min. A stop file during the wait ends the queue with nothing run.
 qlog "queue start"
 until [[ -f logs/run_A.done ]]; do
