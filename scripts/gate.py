@@ -18,6 +18,17 @@ def blend_gate(c, b, min_d=3e-5):
     return d >= min_d - 1e-12 and up == 2, d, up
 
 
+def _num(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _dict_with(c, b, key, n):
+    """Both inputs are JSON objects with a numeric oof and n numeric <key> values. Anything else is MISSING, not a crash."""
+    if not (isinstance(c, dict) and isinstance(b, dict)):
+        return False
+    return all(_num(x.get("oof")) and isinstance(x.get(key), list) and len(x[key]) == n and all(_num(v) for v in x[key]) for x in (c, b))
+
+
 def _read(p):
     try:
         return json.loads(Path(p).read_text())
@@ -40,12 +51,12 @@ def main(argv):
     if blend:
         c, b = _read(cand), _read(base)
         names = (Path(cand).stem, Path(base).stem)
-        ok_in = c is not None and b is not None and len(c.get("split_half", [])) == 2 and len(b.get("split_half", [])) == 2
+        ok_in = _dict_with(c, b, "split_half", 2)
         n, unit = 2, "halves"
     else:
         c, b = _read(root / "logs" / f"{cand}.json"), _read(root / "logs" / f"{base}.json")
         names = (cand, base)
-        ok_in = c is not None and b is not None and len(c.get("folds", [])) == 5 and len(b.get("folds", [])) == 5
+        ok_in = _dict_with(c, b, "folds", 5)
         n, unit = 5, "folds"
     if not ok_in:
         print(f"GATE MISSING {names[0]} vs {names[1]}")
