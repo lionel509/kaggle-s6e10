@@ -5,7 +5,7 @@
 # Never submits to Kaggle. Re-runnable: runs whose logs/<name>.json exists are skipped.
 # Kill switch: touch logs/queue_i3.stop (skips the remaining training; blends and report still run).
 # Launch once merged: nohup zsh scripts/queue_i3.sh >/dev/null 2>&1 & disown
-# Stop now: kill -TERM <pid in logs/queue_i3.lock.d/pid>: kills the running step's process group, releases the lock, exits.
+# Stop now: kill -TERM <pid in logs/queue_i3.lock.d/pid>: TERMs the running step's process group, KILLs it after a 10 s grace, releases the lock, exits.
 # A is finished when logs/run_A.done exists and the PID in logs/run_A.pid is gone. A relaunched A must rewrite logs/run_A.pid.
 cd "${0:A:h}/.."
 L=logs/queue_i3.log
@@ -127,10 +127,20 @@ take_lock() {
 release_lock() { local p; { p=$(<$LOCK/pid) } 2>/dev/null; [[ $p == $$ ]] && rm -rf $LOCK; }
 on_signal() {
   trap '' TERM INT
-  local g=$STEP_PG
+  local g=$STEP_PG i
   if [[ -n $g ]]; then
     kill -TERM -- -$g 2>/dev/null; kill -TERM $g 2>/dev/null  # the second covers a child that has not reached setpgrp
+    for i in {1..10}; do kill -0 -- -$g 2>/dev/null || break; sleep 1; done  # 10 s grace for the step to exit on TERM
+    if kill -0 -- -$g 2>/dev/null; then
+      qlog "step group $g ignored TERM for 10 s: KILL"
+      kill -KILL -- -$g 2>/dev/null; kill -KILL $g 2>/dev/null
+    fi
     wait $g 2>/dev/null
+    for i in {1..5}; do kill -0 -- -$g 2>/dev/null || break; sleep 1; done
+    if kill -0 -- -$g 2>/dev/null; then
+      qlog "signal $1: step group $g survived KILL, lock kept (a relaunch refuses until it is gone): exit"
+      exit $2
+    fi
   fi
   release_lock
   qlog "signal $1: killed step group ${g:-none}, lock released, exit"
