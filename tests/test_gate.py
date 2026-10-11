@@ -73,3 +73,31 @@ def test_pass_appends_one_record(root):
     rec = recs[-1]
     assert rec["up"] == 5 and rec["pass"] is True and rec["missing"] is False
     assert abs(rec["delta"] - 0.0001) < 1e-9
+
+
+def _write_blend(root, name, oof, halves):
+    (root / "logs").mkdir(exist_ok=True)
+    json.dump({"oof": oof, "weights": {}, "split_half": halves}, open(root / "logs" / f"{name}.json", "w"))
+
+
+def _gate_blend(root, cand, base):
+    assert GATE.exists(), "scripts/gate.py not written yet"
+    args = [sys.executable, str(GATE), "--blend", str(root / "logs" / f"{cand}.json"),
+            str(root / "logs" / f"{base}.json"), str(root)]
+    return subprocess.run(args, capture_output=True, text=True)
+
+
+def test_blend_higher_oof_but_one_worse_half_fails(tmp_path):
+    _write_blend(tmp_path, "bcand", 0.961800, [0.961300, 0.962300])
+    _write_blend(tmp_path, "bbase", 0.961700, [0.961400, 0.962200])
+    assert _gate_blend(tmp_path, "bcand", "bbase").returncode == 1
+    rec = _records(tmp_path)[-1]
+    assert rec["up"] == 1 and rec["pass"] is False and rec["missing"] is False
+
+
+def test_blend_gain_in_both_halves_passes(tmp_path):
+    _write_blend(tmp_path, "bcand", 0.961800, [0.961500, 0.962300])
+    _write_blend(tmp_path, "bbase", 0.961700, [0.961400, 0.962200])
+    assert _gate_blend(tmp_path, "bcand", "bbase").returncode == 0
+    rec = _records(tmp_path)[-1]
+    assert rec["up"] == 2 and rec["pass"] is True
