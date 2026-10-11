@@ -1,9 +1,16 @@
 """Shared feature frame. Label-free features are built on train+test; label-based ones are fold-safe."""
+import os
 import numpy as np, pandas as pd
 from sklearn.model_selection import StratifiedKFold
 
 CAT = ["Gender", "Customer Type", "Type of Travel", "Class"]
 FD, AGE, DD, AD = "Flight Distance", "Age", "Departure Delay in Minutes", "Arrival Delay in Minutes"
+RATINGS = ["Inflight wifi service", "Departure/Arrival time convenient", "Ease of Online booking", "Gate location",
+           "Food and drink", "Online boarding", "Seat comfort", "Inflight entertainment", "On-board service",
+           "Leg room service", "Baggage handling", "Checkin service", "Cleanliness"]
+BLOCKS = {"blk_conv": ["Inflight wifi service", "Gate location", "Departure/Arrival time convenient", "Ease of Online booking"],
+          "blk_comf": ["Food and drink", "Inflight entertainment", "Cleanliness", "Seat comfort"],
+          "blk_all": RATINGS}
 
 
 def load():
@@ -56,8 +63,13 @@ def _label_free(tr, te, og, og_y):
 
 def te_keys(df):
     s = lambda c: df[c].astype(str)
-    return {"te_fd": s(FD), "te_fd_cls": s(FD) + s("Class"), "te_fd_tt": s(FD) + s("Type of Travel"),
+    keys = {"te_fd": s(FD), "te_fd_cls": s(FD) + s("Class"), "te_fd_tt": s(FD) + s("Type of Travel"),
             "te_age_cls_tt_ct": s(AGE) + s("Class") + s("Type of Travel") + s("Customer Type"), "te_fd10": (df[FD] // 10).astype(str)}
+    if os.environ.get("BLKTE"):  # D: rating-block codes (base 6, ratings are 0..5)
+        for n, cols in BLOCKS.items():
+            code = df[cols].values.astype(np.int64) @ (6 ** np.arange(len(cols), dtype=np.int64))
+            keys["te_" + n] = pd.Series(code, index=df.index).astype(str)
+    return keys
 
 
 def add_te(Xtr, Xva, Xte, ytr, m=20, inner=5, seed=0):
@@ -98,13 +110,14 @@ def extra(tr, te, cache="data/feat_extra.parquet"):
     return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
 
 
-def teachers(tr, te, og, og_y, cache="data/feat_teachers.parquet"):
+def teachers(tr, te, og, og_y, cache="data/feat_teachers.parquet", cat2="data/feat_teacher_cat2.parquet"):
     """Extra teachers (trained on the original only), as logits: a05 found lgb_1500 / xgb_d8 / cat_d8 rank our labels 0.9547-0.9549."""
-    import os
     if os.path.exists(cache):
         out = pd.read_parquet(cache)
         if os.environ.get("TEACH") == "2":  # + the RealMLP teacher (models/teacher_mlp.py)
             out = pd.concat([out, pd.read_parquet("data/feat_teacher_mlp.parquet")], axis=1)
+        elif os.environ.get("TEACH") == "3":  # + the CatBoost teacher with native crosses (models/teacher_cat.py)
+            out = pd.concat([out, pd.read_parquet(cat2)], axis=1)
         return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
     import lightgbm as lgb, xgboost as xgb
     from catboost import CatBoostClassifier
