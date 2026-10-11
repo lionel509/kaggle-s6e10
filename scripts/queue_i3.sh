@@ -24,7 +24,7 @@ qlog() { print -r -- "$(date '+%F %T') $*" >> $L; }
 have() { [[ -f logs/$1.json ]]; }
 wait_render() { while pgrep -f scripts/overnight.py >/dev/null; do sleep 60; done; }
 # run_A.done is not enough: a relaunched A or an orphan from a killed queue can still be training. Machine-wide on purpose (RAM is).
-BUSY='logs/run_A\.sh|models/[a-z0-9_]+\.py'
+BUSY='logs/run_A\.sh|[Pp]ython[0-9.]* .*models/[a-z0-9_]+\.py'
 wait_busy() { local n=0; while pgrep -f "$BUSY" >/dev/null; do (( n++ )) || qlog "waiting: training process alive"; sleep 60; done; }
 
 # step <stem> [VAR=v ...] cmd...   logs to logs/<stem>.log

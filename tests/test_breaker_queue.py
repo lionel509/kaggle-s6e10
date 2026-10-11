@@ -62,7 +62,7 @@ def test_breaker_queue_waits_while_catboost_a_still_runs(rig):
     The queue has no pgrep guard for it and nothing writes logs/run_A.done, so it should not start yet."""
     R, env, spy = rig
     (R / "logs/v3b_realmlp_e6_n8_s42_k20_aux_teach.json").write_text("{}")
-    cat = subprocess.Popen(["perl", "-e", "sleep 60", "models/v4_catboost.py"], cwd=R)
+    cat = subprocess.Popen(["perl", "-e", "sleep 60", "python", "models/v4_catboost.py"], cwd=R)
     try:
         _run(R, env, secs=5)
     finally:

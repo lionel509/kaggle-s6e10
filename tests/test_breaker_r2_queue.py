@@ -65,7 +65,7 @@ def test_r2_stale_run_A_done_starts_while_A_is_relaunched(rig):
     The queue's only guard is that file, so it starts training while A is still running."""
     R, env, spy = rig
     (R / "logs/run_A.done").write_text("")  # stale: from the earlier A pass
-    cat = subprocess.Popen(["perl", "-e", "sleep 60", "models/v4_catboost.py"], cwd=R)
+    cat = subprocess.Popen(["perl", "-e", "sleep 60", "python", "models/v4_catboost.py"], cwd=R)
     p = _launch(R, env)
     try:
         time.sleep(5)
