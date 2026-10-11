@@ -58,6 +58,11 @@ step() {
   print $STEP_PG > $LOCK/step
   wait $STEP_PG
   local rc=$?
+  # the leader has exited: clear any member it left in the group before the step file goes (release_lock relies on it)
+  if ! sweep_group $STEP_PG; then
+    qlog "FAILED $stem: step group $STEP_PG survived KILL, lock kept (a relaunch refuses until it is gone): exit"
+    exit 1
+  fi
   STEP_PG=
   rm -f $LOCK/step
   if (( rc == 0 )); then qlog "ok $stem"; return 0; fi
@@ -124,7 +129,20 @@ take_lock() {
   rmdir $LOCK.takeover
   return $rc
 }
-release_lock() { local p g; { p=$(<$LOCK/pid); g=$(<$LOCK/step) } 2>/dev/null; [[ $g == <1-> ]] && kill -0 -- -$g 2>/dev/null && return; [[ $p == $$ ]] && rm -rf $LOCK; }
+# sweep_group <pgid>: the step's leader has exited; clear whatever members remain. TERM, 10 s grace, KILL, 5 s.
+# Returns 1 only when a member survives KILL.
+sweep_group() {
+  local g=$1 i
+  kill -0 -- -$g 2>/dev/null || return 0
+  qlog "step group $g still has members after its leader exited: TERM"
+  kill -TERM -- -$g 2>/dev/null
+  for i in {1..10}; do kill -0 -- -$g 2>/dev/null || return 0; sleep 1; done
+  qlog "step group $g ignored TERM for 10 s: KILL"
+  kill -KILL -- -$g 2>/dev/null
+  for i in {1..5}; do kill -0 -- -$g 2>/dev/null || return 0; sleep 1; done
+  return 1
+}
+release_lock() { local p g;{ p=$(<$LOCK/pid); g=$(<$LOCK/step) } 2>/dev/null; [[ $g == <1-> ]] && kill -0 -- -$g 2>/dev/null && return; [[ $p == $$ ]] && rm -rf $LOCK; }
 on_signal() {
   trap '' TERM INT
   local g=$STEP_PG i

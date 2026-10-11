@@ -1,4 +1,9 @@
-"""Breaker probes for release_lock in scripts/queue_i3.sh at 878f969 (PR #4, commit 878f969). Failing probes only.
+"""Breaker probes for release_lock in scripts/queue_i3.sh (PR #4, commit 878f969). Adopted as failing at 704d5ff.
+
+Fixed in the PR #4 follow-up: after a normal exit the queue clears the leftover member of the step group (TERM,
+grace, KILL) before it clears the step file. So the probes now assert the invariant the fix enforces: the lock is
+never released while the step group has a live member. The original precondition ("the member is still alive after
+the queue exits") no longer holds, because the queue itself clears it.
 
 Each test copies the queue into a temp repo with a stub .venv/bin/python and a stub pgrep (a real overnight render
 on this Mac would otherwise block wait_render), launches it in its own session, and signals only the queue it
@@ -77,30 +82,54 @@ def cleanup(root, q):
 
 
 def test_breaker_lock_kept_when_normal_exit_leaves_group_member(tmp_path):
-    # Expected per the commit's rule (lock_live): a live step group keeps the lock. Actual: released.
+    # Invariant: the lock is released only once the step group is empty. Before the fix the queue released the lock
+    # with the leftover member still alive; after it, the queue clears the member first.
     root = make_root(tmp_path, LINGER)
     q = launch(root)
     try:
         q.wait(timeout=50)
-        assert group_alive(first_group(root)), "precondition: a child should still be in the step group"
-        assert (root / LOCK).exists(), "lock released while the step group is still alive"
+        assert not (root / LOCK).exists(), "queue did not finish"
+        assert not group_alive(first_group(root)), "lock released while the step group still has a live member"
     finally:
         cleanup(root, q)
 
 
-def test_breaker_relaunch_refused_after_normal_exit_with_group_member(tmp_path):
-    # Consequence of the same break: a second queue takes the lock and runs steps beside the live group.
+def test_breaker_relaunch_never_runs_beside_group_member(tmp_path):
+    # Consequence of the same break: a relaunch takes the lock while the old step group is alive. The relaunch
+    # must only start once that group is empty.
     root = make_root(tmp_path, LINGER)
     q1 = launch(root)
     q2 = None
     try:
         q1.wait(timeout=50)
-        assert group_alive(first_group(root)), "precondition: a child should still be in the step group"
+        assert not group_alive(first_group(root)), "step group still alive when the queue exited (relaunch would run beside it)"
         q2 = launch(root)
         q2.wait(timeout=50)
         log = (root / "logs" / "queue_i3.log").read_text()
-        assert "another queue holds" in log, "relaunch started beside a live step group"
+        assert "queue done" in log, "relaunch did not run to completion"
+        assert "another queue holds" not in log, "relaunch refused although the step group was empty"
     finally:
         cleanup(root, q1)
         if q2 is not None:
             cleanup(root, q2)
+
+
+# Fix-path test (not a breaker probe): the leader exits 0, a member is left, and the group still reports alive after
+# KILL. The queue must log FAILED, keep the lock (a relaunch refuses) and stop without running the next step.
+SWEEP_SURVIVE_PRELUDE = 'kill() { if [[ $1 == -0 && $2 == -- && -n $FAKE_SURVIVE ]]; then return 0; fi; builtin kill "$@"; }\n'
+
+
+def test_sweep_survivor_keeps_lock_and_stops_queue(tmp_path, monkeypatch):
+    root = make_root(tmp_path, LINGER)
+    qfile = root / "scripts" / "queue_i3.sh"
+    qfile.write_text(qfile.read_text().replace("#!/bin/zsh\n", "#!/bin/zsh\n" + SWEEP_SURVIVE_PRELUDE, 1))
+    monkeypatch.setenv("FAKE_SURVIVE", "1")
+    q = launch(root)
+    try:
+        q.wait(timeout=60)
+        log = (root / "logs" / "queue_i3.log").read_text()
+        assert "survived KILL, lock kept" in log, "sweep survivor was not logged as FAILED"
+        assert "queue done" not in log, "queue ran on beside a surviving step group"
+        assert (root / LOCK).exists(), "lock released although a step group member survived KILL"
+    finally:
+        cleanup(root, q)
