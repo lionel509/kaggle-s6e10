@@ -58,16 +58,13 @@ def _starts(spy):
 
 
 def test_breaker_queue_waits_while_catboost_a_still_runs(rig):
-    """A's CatBoost k20 (models/v4_catboost.py) may still be running when the RealMLP k20 JSON lands.
-    The queue has no pgrep guard for it and nothing writes logs/run_A.done, so it should not start yet."""
+    """A's CatBoost k20 may still be running when the RealMLP k20 JSON lands. A is unfinished while
+    logs/run_A.done is missing, so the queue must not start yet. The decision reads the done file and run_A.pid
+    only, never the process list, so no process is started here to stand in for A."""
     R, env, spy = rig
     (R / "logs/v3b_realmlp_e6_n8_s42_k20_aux_teach.json").write_text("{}")
-    cat = subprocess.Popen(["perl", "-e", "sleep 60", "python", "models/v4_catboost.py"], cwd=R)
-    try:
-        _run(R, env, secs=5)
-    finally:
-        cat.kill(); cat.wait()
-    assert _starts(spy) == [], f"queue trained while A's catboost was alive: {_starts(spy)[:2]}"
+    _run(R, env, secs=5)
+    assert _starts(spy) == [], f"queue trained before logs/run_A.done existed: {_starts(spy)[:2]}"
 
 
 def test_queue_stop_before_A_runs_nothing(rig):

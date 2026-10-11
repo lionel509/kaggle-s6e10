@@ -61,17 +61,23 @@ def _starts(spy):
 
 
 def test_r2_stale_run_A_done_starts_while_A_is_relaunched(rig):
-    """run_A.done left over from an earlier A run, A relaunched and still running (models/v4_catboost.py alive).
-    The queue's only guard is that file, so it starts training while A is still running."""
+    """run_A.done left over from an earlier A pass, and A relaunched: run_A.pid names a live process. The queue
+    must wait for that PID, not for the done file alone. Once the PID is gone it must start."""
     R, env, spy = rig
     (R / "logs/run_A.done").write_text("")  # stale: from the earlier A pass
-    cat = subprocess.Popen(["perl", "-e", "sleep 60", "python", "models/v4_catboost.py"], cwd=R)
+    a = subprocess.Popen(["/bin/sleep", "60"], cwd=R, start_new_session=True,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    (R / "logs/run_A.pid").write_text(str(a.pid))
     p = _launch(R, env)
     try:
-        time.sleep(5)
+        time.sleep(4)
+        assert _starts(spy) == [], f"queue trained while run_A.pid ({a.pid}) was alive: {_starts(spy)[:2]}"
+        _kill_group(a)  # the relaunched A ends
+        t0 = time.time()
+        while not _starts(spy) and time.time() - t0 < 6: time.sleep(0.2)
+        assert _starts(spy), "queue did not start once run_A.pid was gone"
     finally:
-        _kill_group(p); cat.kill(); cat.wait()
-    assert _starts(spy) == [], f"queue trained while A (v4_catboost) was alive: {_starts(spy)[:2]}"
+        _kill_group(p); _kill_group(a)
 
 
 def test_r2_killed_queue_shell_lets_second_queue_train_over_orphan(rig):
@@ -82,16 +88,26 @@ def test_r2_killed_queue_shell_lets_second_queue_train_over_orphan(rig):
     (R / "logs/run_A.done").write_text("")
     env = {**env, "TRAIN_SECS": "8"}
     p1 = _launch(R, env)
+    p2, g = None, None
     try:
         t0 = time.time()
         while not _starts(spy) and time.time() - t0 < 10: time.sleep(0.2)
         assert _starts(spy), "first queue never started a training"
+        t1 = time.time()
+        while g is None and time.time() - t1 < 2:  # the step has its own process group, recorded in the lock dir
+            try: g = int((R / "logs/queue_i3.lock.d/step").read_text().strip())
+            except (FileNotFoundError, ValueError): time.sleep(0.05)
+        assert g is not None, "no step group recorded in logs/queue_i3.lock.d/step"
         os.kill(p1.pid, signal.SIGKILL); p1.wait()
         p2 = _launch(R, env)
         time.sleep(4)
-        _kill_group(p2)
+        assert p2.poll() is not None, "second queue trained over the live orphaned step group"
     finally:
-        _kill_group(p1)  # reaps the orphaned training child too
+        if p2: _kill_group(p2)
+        _kill_group(p1)  # the queue shell is already gone; the training child is in its own group
+        if g is not None:
+            try: os.killpg(g, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError): pass
     lines = spy.read_text().splitlines()
     first_end = next((i for i, l in enumerate(lines) if " END " in l), len(lines))
     starts_before_end = [l for l in lines[:first_end] if " START " in l]
