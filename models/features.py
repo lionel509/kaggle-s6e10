@@ -130,7 +130,7 @@ def teachers(tr, te, og, og_y, cache="data/feat_teachers.parquet", cat2="data/fe
     for c in CAT: Os[c], As[c] = Os[c].astype(str), As[c].astype(str)
     out["t_cat8"] = lg(CatBoostClassifier(iterations=2000, learning_rate=0.05, depth=8, verbose=0, thread_count=8, random_seed=0).fit(Os, og_y, cat_features=CAT).predict_proba(As)[:, 1])
     out.to_parquet(cache)
-    return out.iloc[: len(tr)].reset_index(drop=True), out.iloc[len(tr):].reset_index(drop=True)
+    return teachers(tr, te, og, og_y, cache, cat2)  # re-reads the cache just written, so TEACH=2/3 concat applies here too
 
 
 def ham_core(Q, O, oy, og_grp=None, q_grp=None, k=1, chunk=2000):
