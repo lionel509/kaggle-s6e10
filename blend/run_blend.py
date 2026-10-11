@@ -23,9 +23,10 @@ names = [n for n in oof if not (drop and re.search(drop, n))]; M = np.c_[[oof[n]
 for n in names: print(f"  {roc_auc_score(y, oof[n]):.6f}  {n}")
 Z = fold_rank_probit(M, fold); w = fit_weights(Z, y); auc = roc_auc_score(y, Z @ w)
 print(f"\nBLEND OOF {auc:.6f}"); [print(f"  {w[i]:.3f}  {names[i]}") for i in np.argsort(-w) if w[i] > 0]
-h = np.arange(len(y)) % 2 == 0
+h = np.arange(len(y)) % 2 == 0; sh = []
 for A, B in ((h, ~h), (~h, h)):
-    print("  split-half held-out", round(roc_auc_score(y[B], Z[B] @ fit_weights(Z[A], y[A])), 6))
+    sh.append(float(roc_auc_score(y[B], Z[B] @ fit_weights(Z[A], y[A]))))
+    print("  split-half held-out", round(sh[-1], 6))
 name = sys.argv[1]
 pd.DataFrame({"id": te.id, "satisfaction": norm.cdf(blend(T, w))}).to_csv(f"subs/{name}.csv", index=False)
-json.dump({"oof": auc, "weights": {n: float(w[i]) for i, n in enumerate(names) if w[i] > 0}}, open(f"logs/{name}.json", "w"), indent=1)
+json.dump({"oof": auc, "split_half": sh, "weights": {n: float(w[i]) for i, n in enumerate(names) if w[i] > 0}}, open(f"logs/{name}.json", "w"), indent=1)
