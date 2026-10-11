@@ -16,6 +16,11 @@ case "$1" in
   *) echo "$(now) NONTRAIN $*" >> "$SPY"; exit "${BLEND_RC:-0}";;
 esac
 """
+PGREP_SHIM = """#!/bin/sh
+case "$*" in *overnight*) exit 1;; esac
+for p in $(/usr/bin/pgrep -f "$2"); do [ "$(lsof -a -p $p -d cwd -Fn 2>/dev/null | sed -n s/^n//p)" = "$(pwd -P)" ] && exit 0; done
+exit 1
+"""
 
 
 def _exec(p, text):
@@ -31,7 +36,8 @@ def rig(tmp_path):
         shutil.copy(REPO / "scripts" / f, R / "scripts" / f)
     _exec(R / ".venv/bin/python", STUB)
     _exec(R / "shim/sleep", '#!/bin/sh\n[ "$1" = 300 ] && set -- 1\nexec /bin/sleep "$1"\n')  # the queue's 300s poll becomes 1s
-    _exec(R / "shim/pgrep", "#!/bin/sh\nexit 1\n")  # no real Applied Pipeline render may hold wait_render
+    # sees only processes whose cwd is this temp repo: no real Applied Pipeline render or real A may hold the queue
+    _exec(R / "shim/pgrep", PGREP_SHIM)
     spy = tmp_path / "spy.txt"; spy.write_text("")
     env = {**os.environ, "SPY": str(spy), "REAL_PY": REAL_PY, "PATH": f"{R/'shim'}:{os.environ['PATH']}"}
     return R, env, spy
