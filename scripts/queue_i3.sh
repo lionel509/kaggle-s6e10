@@ -23,9 +23,13 @@ bx=0 bm=0
 qlog() { print -r -- "$(date '+%F %T') $*" >> $L; }
 have() { [[ -f logs/$1.json ]]; }
 wait_render() { while pgrep -f scripts/overnight.py >/dev/null; do sleep 60; done; }
+# run_A.done is not enough: a relaunched A or an orphan from a killed queue can still be training. Machine-wide on purpose (RAM is).
+BUSY='logs/run_A\.sh|models/[a-z0-9_]+\.py'
+wait_busy() { local n=0; while pgrep -f "$BUSY" >/dev/null; do (( n++ )) || qlog "waiting: training process alive"; sleep 60; done; }
 
 # step <stem> [VAR=v ...] cmd...   logs to logs/<stem>.log
 step() {
+  wait_busy
   local stem=$1; shift
   if [[ -e logs/queue_i3.stop ]]; then qlog "SKIP $stem (stop file)"; return 1; fi
   qlog "start $stem"
@@ -87,6 +91,7 @@ until [[ -f logs/run_A.done ]]; do
   if [[ -e logs/queue_i3.stop ]]; then qlog "stop file before A finished: exit"; exit 0; fi
   sleep 300
 done
+wait_busy
 qlog "A finished: cat $(have $A_CAT && echo ok || echo MISSING), realmlp $(have $A_MLP && echo ok || echo MISSING)"
 
 # (B) soft labels. Teachers first (pairs, then singles for K=20), then the k5 students.
@@ -166,6 +171,7 @@ fi
 
 # Blends: these don't go through step, so they run even when the stop file exists.
 NEW='_soft|_teach3|_blkte|v8_tabm'
+wait_busy
 rm -f logs/q3_base.json logs/q3_all.json
 $PY blend/run_blend.py q3_base --own-only --drop "$NEW" > logs/q3_base.log 2>&1 &
 if (( $#DROP )); then

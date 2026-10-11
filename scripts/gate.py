@@ -19,7 +19,8 @@ def blend_gate(c, b, min_d=3e-5):
 
 
 def _num(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool)
+    """Every number the gate reads is an AUC, so anything outside [0, 1] (and NaN, Infinity) is malformed."""
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and 0.0 <= v <= 1.0
 
 
 def _dict_with(c, b, key, n):
