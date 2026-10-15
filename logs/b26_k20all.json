@@ -1,0 +1,21 @@
+{
+ "oof": 0.9618569585035098,
+ "split_half": [
+  0.9614801513677242,
+  0.9621764495567589
+ ],
+ "weights": {
+  "own:v3b_realmlp_e6_n8_s42_aux_teach_blkte": 0.065,
+  "own:v3b_realmlp_e6_n8_s42_k20_aux_teach": 0.18000000000000005,
+  "own:v3b_realmlp_e6_n8_s42_k20_teach": 0.07000000000000002,
+  "own:v4_cat_s42_extra_aux_teach_cross_block": 0.07,
+  "own:v4_cat_s42_extra_teach_cross_block": 0.01,
+  "own:v4_cat_s42_k20_extra_aux_teach_cross_block": 0.3500000000000001,
+  "own:v4_cat_s42_k20_extra_teach": 0.02,
+  "own:v5_xgb_d8_s42_k20_extra_aux_teach3": 0.1,
+  "own:v5_xgb_d8_s42_k20_extra_aux_teach": 0.04,
+  "own:v5_xgb_d8_s42_k20_extra_teach": 0.06999999999999999,
+  "own:v7_rows_w0": 0.015000000000000003,
+  "own:v7_rows_w1": 0.01
+ }
+}
