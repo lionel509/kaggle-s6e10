@@ -20,5 +20,6 @@ def test_lrs_unset_keeps_default_name_and_schedule(smoke_rig, monkeypatch):
 
 def test_lrs_unknown_value_fails(smoke_rig, monkeypatch):
     monkeypatch.delenv("LRS", raising=False)
-    with pytest.raises(AssertionError):
+    # the LRS assert is the last line of the child traceback; a crash elsewhere (e.g. an OpenMP abort) must not match
+    with pytest.raises(AssertionError, match="AssertionError: bogus"):
         smoke_rig.run("v3b_realmlp.py", 1, 1, SMOKE=2000, DEVICE="cpu", AUX=1, TEACH=1, LRS="bogus")

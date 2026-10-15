@@ -19,13 +19,17 @@ def _add(oof, tst, tag, fo, o, t):
     for c in o.columns:
         tc = c if c in t else "satisfaction"
         if c == "fold" or tc not in t or o[c].isna().any() or t[tc].isna().any(): continue
-        oof[f"{tag}:{fo[:-4]}:{c}"] = o[c].to_numpy(float); tst[f"{tag}:{fo[:-4]}:{c}"] = t[tc].to_numpy(float)
+        key = f"{tag}:{fo[:-4]}:{c}"
+        if key in oof: raise ValueError(f"duplicate public column {key}")  # two members must never share a key silently
+        oof[key] = o[c].to_numpy(float); tst[key] = t[tc].to_numpy(float)
 
 
 def load_public(train_ids, test_ids):
     oof, tst = {}, {}
     for d in sorted(glob.glob("public_out/*/")):
-        tag = os.path.basename(d.rstrip("/")).split("_")[0]
+        # the key is the full folder name: two folders from one family (same tag) must not share columns
+        tag = os.path.basename(d.rstrip("/"))
+        if tag.split("_")[0] == "own": raise ValueError(f"{d}: tag 'own' is reserved")  # run_blend's own: keys
         for fo, ft in PAIRS:
             if not (os.path.exists(d + fo) and os.path.exists(d + ft)): continue
             o, t = pd.read_csv(d + fo), pd.read_csv(d + ft)

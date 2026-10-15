@@ -6,7 +6,7 @@ Usage: MEMBER=tabicl_raw CTX=100000 FOLDS=0,1 python models/v9_tfm.py
 import os
 T = os.environ.get("THREADS", "4")
 os.environ.setdefault("OMP_NUM_THREADS", T); os.environ.setdefault("MKL_NUM_THREADS", T)
-import json, resource, sys, time
+import gc, json, resource, sys, time
 from pathlib import Path
 import numpy as np, pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -108,6 +108,7 @@ def run_fold(k, ctx):
     J = {"member": MEMBER, "fold": k, "ctx": int(len(ctx_idx)), "device": DEVICE, **info,
          "fit_s": round(t1 - t0, 1), "pred_s": round(time.time() - t1, 1), "peak_mem_gb": round(peak, 2), "auc": auc}
     J.setdefault("version", None); J.setdefault("cat_idx", None)
+    J["mps_gb"] = round(torch.mps.driver_allocated_memory() / 2 ** 30, 2) if DEVICE == "mps" and hasattr(torch.mps, "driver_allocated_memory") else None  # point-in-time, after the fold
     json.dump(J, open(OUT / f"{MEMBER}_f{k}.json", "w"), indent=1)
     tmp = OUT / f"{MEMBER}_f{k}.tmp.npz"  # write then rename, so a killed job never leaves a half .npz that resume would skip
     np.savez(tmp, val_idx=val_idx.astype(np.int64), val_pred=vp.astype(np.float64), test_pred=tp.astype(np.float64))
@@ -118,11 +119,18 @@ def run_fold(k, ctx):
 for k in FOLD_LIST:
     if (OUT / f"{MEMBER}_f{k}.npz").exists():
         print(f"SKIP fold {k}", flush=True); continue
+    used = min(CTX or len(FOLD[k][0]), len(FOLD[k][0]))  # rows the failed attempt actually used
     try:
         run_fold(k, CTX)
+        continue
     except Exception as e:
         if not _is_oom(e):
             raise
-        half = CTX // 2 if CTX else len(FOLD[k][0]) // 2
-        print(f"OOM fold {k} ctx {CTX} -> {half}", flush=True)
-        run_fold(k, half)  # one retry at half the context; a second failure propagates
+    # outside the handler, so the failed attempt's tensors can be freed before the retry
+    half = used // 2
+    if half < 1:
+        raise RuntimeError(f"fold {k}: out of memory at ctx {used}, no smaller context to retry")
+    print(f"OOM fold {k} ctx {used} -> {half}", flush=True)
+    gc.collect()
+    if DEVICE == "mps" and torch is not None and hasattr(torch.mps, "empty_cache"): torch.mps.empty_cache()
+    run_fold(k, half)  # one retry at half the context; a second failure propagates

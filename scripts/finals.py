@@ -2,7 +2,7 @@
 SAFE: the highest-OOF own-only blend that no other own-only blend beats strictly on both split halves.
 AGGR: SAFE with its own-member test columns refit-swapped (hedge files), else its family hedge (subs/<SAFE>_fam.csv).
 Usage (from the repo root): python scripts/finals.py   -> prints the table, writes logs/finals.json"""
-import datetime, json, sys
+import datetime, json, math, sys
 from pathlib import Path
 import numpy as np
 
@@ -11,7 +11,7 @@ import hedge  # noqa: E402
 
 
 def _num(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool)
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
 
 def load_pool(root="."):
