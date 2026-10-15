@@ -15,9 +15,13 @@ PREFIXES = ["own:", "tabpfnmember:oof_", "goodpjw2008:oof_members:", "twinstacks
 
 def _blend(root, name, oof, halves, weights, csv=True):
     (root / "logs").mkdir(parents=True, exist_ok=True); (root / "subs").mkdir(parents=True, exist_ok=True)
+    (root / "data").mkdir(parents=True, exist_ok=True)
+    if not (root / "data" / "test.csv").exists():
+        (root / "data" / "test.csv").write_text("id,x\n0,0\n")
     json.dump({"oof": oof, "split_half": list(halves), "weights": weights}, open(root / "logs" / f"{name}.json", "w"))
-    if csv:
-        (root / "subs" / f"{name}.csv").write_text("id,satisfaction\n0,0.5\n")
+    if csv:  # one submission row per test row, so the row-count check passes
+        n = len(open(root / "data" / "test.csv").readlines()) - 1
+        (root / "subs" / f"{name}.csv").write_text("id,satisfaction\n" + "".join(f"{i},0.5\n" for i in range(n)))
 
 
 def _random_pool(root, rng):
@@ -71,7 +75,7 @@ def test_main_states_follow_hedge_files(tmp_path, monkeypatch):
     assert J["safe"] == "b26"
     assert J["aggressive_kind"] == "family_hedge_pending" and J["aggressive_csv"] is None
 
-    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n0,0.5\n")
+    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n" + "".join(f"{i},0.5\n" for i in range(5)))
     finals.main(["finals"])
     J = json.load(open(tmp_path / "logs" / "finals.json"))
     assert J["aggressive_kind"] == "family_hedge"
@@ -164,3 +168,66 @@ def test_r3_nan_family_hedge_is_not_picked(tmp_path, monkeypatch):
     pool = finals.load_pool(root=str(tmp_path))
     kind, csv = finals.aggressive(pool, "b26", root=str(tmp_path))
     assert kind == "family_hedge_pending" and csv is None
+
+
+def _full_csv(n=10):
+    return "id,satisfaction\n" + "".join(f"{i},0.5\n" for i in range(n))
+
+
+def _setup(tmp_path):
+    (tmp_path / "data").mkdir(); (tmp_path / "logs").mkdir(); (tmp_path / "subs").mkdir(); (tmp_path / "oof").mkdir()
+    (tmp_path / "data" / "test.csv").write_text("id,x\n" + "".join(f"{i},0\n" for i in range(10)))
+    np.save(tmp_path / "oof" / "a_test.npy", np.arange(10.0))
+    json.dump({"oof": 0.961857, "split_half": [0.96148, 0.962176], "weights": {"own:a": 1.0}}, open(tmp_path / "logs" / "b26.json", "w"))
+    return tmp_path
+
+
+def test_truncated_family_csv_never_becomes_aggr(tmp_path, monkeypatch):
+    root = _setup(tmp_path)
+    (root / "subs" / "b26.csv").write_text(_full_csv())
+    (root / "subs" / "b26_fam.csv").write_text(_full_csv(4))
+    monkeypatch.chdir(root)
+    pool = finals.load_pool()
+    kind, path = finals.aggressive(pool, "b26")
+    assert kind == "family_hedge_pending" and path is None, (kind, path)
+
+
+def test_truncated_safe_csv_not_in_pool(tmp_path, monkeypatch):
+    root = _setup(tmp_path)
+    (root / "subs" / "b26.csv").write_text(_full_csv(4))
+    monkeypatch.chdir(root)
+    pool = finals.load_pool()
+    assert "b26" not in pool, sorted(pool)
+
+
+def test_refit_hedge_one_row_short_falls_through_to_family(tmp_path, monkeypatch):
+    _aggr_setup(monkeypatch, tmp_path)
+    np.save(tmp_path / "subs" / "hedge" / "a_hedge_test.npy", np.array([0.5, 0.6, 0.7]))
+    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n0,0.5\n1,0.6\n2,0.7\n")
+
+    def short_hedge(argv):  # hedge.main writes the full test set; this stands in for a truncated write
+        Path(f"subs/{argv[2]}.csv").write_text("id,satisfaction\n0,0.5\n1,0.6\n")
+        return 0
+    monkeypatch.setattr(finals.hedge, "main", short_hedge)
+    pool = finals.load_pool(root=str(tmp_path))
+    kind, csv = finals.aggressive(pool, "b26", root=str(tmp_path))
+    assert kind == "family_hedge" and csv == "subs/b26_fam.csv", (kind, csv)
+
+
+def test_subs_longer_than_test_is_not_in_pool(tmp_path):
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 1.0})
+    (tmp_path / "subs" / "b26.csv").write_text("id,satisfaction\n0,0.5\n1,0.5\n")
+    pool = finals.load_pool(root=str(tmp_path))
+    assert "b26" not in pool
+
+
+@pytest.mark.parametrize("text", [None, "id,x\n"])
+def test_missing_or_empty_test_csv_stops_the_run(tmp_path, text):
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 1.0})
+    if text is None:
+        (tmp_path / "data" / "test.csv").unlink()
+    else:
+        (tmp_path / "data" / "test.csv").write_text(text)
+    with pytest.raises(SystemExit) as e:
+        finals.load_pool(root=str(tmp_path))
+    assert "test.csv" in str(e.value)
