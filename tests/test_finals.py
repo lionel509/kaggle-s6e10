@@ -81,3 +81,15 @@ def test_main_states_follow_hedge_files(tmp_path, monkeypatch):
     J = json.load(open(tmp_path / "logs" / "finals.json"))
     assert J["aggressive_kind"] == "refit_hedge"
     assert (tmp_path / "subs" / "b26_hedge.csv").exists()
+
+
+@pytest.mark.parametrize("oof,halves", [
+    (float("nan"), [0.96, 0.96]), (0.96, [float("nan"), 0.96]),
+    (float("inf"), [0.96, 0.96]), (0.96, [0.96, float("-inf")]),
+])
+def test_nonfinite_record_never_picked(tmp_path, oof, halves):
+    _blend(tmp_path, "a_bad", oof, halves, {"own:x": 1.0})  # sorts first, so it would win a NaN tie
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 0.6, "own:b": 0.4})
+    pool = finals.load_pool(root=str(tmp_path))
+    assert "a_bad" not in pool
+    assert finals.choose(pool) == "b26"

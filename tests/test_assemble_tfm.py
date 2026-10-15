@@ -105,3 +105,47 @@ def test_rerun_skips_finished_folds(tmp_path):
     p = _run(data, out, folds_="0")
     assert p.returncode == 0, p.stderr[-2000:]
     assert "SKIP fold 0" in p.stdout
+
+
+FAKE_TABICL = '''
+import os, sys
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+MARK = os.environ["FAKE_MARK"]
+class TabICLClassifier:
+    def __init__(self, **kw): pass
+    def fit(self, X, y):
+        if not os.path.exists(MARK):  # first call: simulated OOM at the full context
+            open(MARK, "w").write(str(len(X)))
+            raise RuntimeError("out of memory (simulated)")
+        open(MARK + ".retry", "w").write(f"{len(X)} {sys.exc_info()[1] is None}")  # retry: rows, and no live exception
+        self.m = make_pipeline(StandardScaler(), LogisticRegression(max_iter=200)).fit(X, y)
+        return self
+    def predict_proba(self, A): return self.m.predict_proba(A)
+'''
+
+
+def _oom_run(tmp_path, ctx):
+    data, _ = _data(tmp_path, 4, 1000)  # 800 fold-train rows
+    fake = tmp_path / "fake"; fake.mkdir()
+    (fake / "tabicl.py").write_text(FAKE_TABICL)
+    env = {k: v for k, v in os.environ.items() if k not in SWITCH_KEYS}
+    env |= {"MEMBER": "tabicl_raw", "FOLDS": "0", "CTX": str(ctx), "DATA": str(data), "OUT": str(tmp_path / "out"),
+            "DEVICE": "cpu", "FAKE_MARK": str(tmp_path / "mark"), "PYTHONPATH": str(fake)}
+    return subprocess.run([sys.executable, str(REPO / "models" / "v9_tfm.py")], cwd=REPO, env=env,
+                          capture_output=True, text=True, timeout=600)
+
+
+def test_oom_retry_is_smaller_and_runs_after_the_handler(tmp_path):
+    p = _oom_run(tmp_path, ctx=100000)
+    assert p.returncode == 0, p.stderr[-1500:]
+    J = json.load(open(tmp_path / "out" / "tabicl_raw_f0.json"))
+    assert 1 <= J["ctx"] < 800, f"OOM retry used ctx={J['ctx']}, not smaller than the 800 that OOM'd"
+    assert (tmp_path / "mark.retry").read_text().endswith("True"), "retry ran inside the except block"
+
+
+def test_oom_retry_at_ctx1_fails_loudly(tmp_path):
+    p = _oom_run(tmp_path, ctx=1)
+    assert p.returncode != 0, "OOM at CTX=1 was retried on all fold-train rows"
+    assert not (tmp_path / "out" / "tabicl_raw_f0.npz").exists()
