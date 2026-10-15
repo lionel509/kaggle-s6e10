@@ -107,8 +107,11 @@ def run_fold(k, ctx):
     auc = float(roc_auc_score(y[val_idx], vp))
     J = {"member": MEMBER, "fold": k, "ctx": int(len(ctx_idx)), "device": DEVICE, **info,
          "fit_s": round(t1 - t0, 1), "pred_s": round(time.time() - t1, 1), "peak_mem_gb": round(peak, 2), "auc": auc}
+    J.setdefault("version", None); J.setdefault("cat_idx", None)
     json.dump(J, open(OUT / f"{MEMBER}_f{k}.json", "w"), indent=1)
-    np.savez(OUT / f"{MEMBER}_f{k}.npz", val_idx=val_idx.astype(np.int64), val_pred=vp.astype(np.float64), test_pred=tp.astype(np.float64))
+    tmp = OUT / f"{MEMBER}_f{k}.tmp.npz"  # write then rename, so a killed job never leaves a half .npz that resume would skip
+    np.savez(tmp, val_idx=val_idx.astype(np.int64), val_pred=vp.astype(np.float64), test_pred=tp.astype(np.float64))
+    os.replace(tmp, OUT / f"{MEMBER}_f{k}.npz")
     print(f"fold {k}: ctx {J['ctx']} | auc {auc:.6f} | fit {J['fit_s']}s pred {J['pred_s']}s | peak {J['peak_mem_gb']} GB", flush=True)
 
 
