@@ -122,3 +122,58 @@ def test_add_refuses_a_duplicate_key(tmp_path):
     public_lib._add(oof, tst, "x_one", "oof_foo.csv", o, t)
     with pytest.raises(ValueError, match="duplicate"):
         public_lib._add(oof, tst, "x_one", "oof_foo.csv", o, t)
+
+
+def _folder(root, name, stems, rng):
+    d = root / "public_out" / name
+    d.mkdir(parents=True, exist_ok=True)
+    for stem in stems:
+        pd.DataFrame({"id": IDS, "a": rng.random(N)}).to_csv(d / f"oof_{stem}.csv", index=False)
+        pd.DataFrame({"id": TIDS, "a": rng.random(NT)}).to_csv(d / f"test_{stem}.csv", index=False)
+
+
+def test_r3_runbook_m_bT1_keeps_every_tabpfnmember_column(tmp_path, monkeypatch):
+    import re, public_lib
+    monkeypatch.chdir(tmp_path)
+    rng = np.random.default_rng(5)
+    _folder(tmp_path, "tabpfnmember_goodpjw2008", ["tabpfn_catfd10", "tabicl_full_raw"], rng)
+    _folder(tmp_path, "thisray_x", ["xgb"], rng)
+    oof, _ = public_lib.load_public(IDS, TIDS)
+    M_BT1 = r'^(?!own:|tabpfnmember:)'  # #6 step 5, verbatim
+    kept = sorted(k for k in list(oof) + ["own:a"] if not re.search(M_BT1, k))
+    members = sorted(k for k in oof if k.startswith("tabpfnmember:"))
+    assert len(members) == 2, f"keys={sorted(oof)}"
+    assert kept == sorted(members + ["own:a"]), f"kept={kept}"
+
+
+def test_r3_runbook_m_bT2_keeps_only_catfd10_and_tabicl(tmp_path, monkeypatch):
+    import re, public_lib
+    monkeypatch.chdir(tmp_path)
+    rng = np.random.default_rng(6)
+    _folder(tmp_path, "tabpfnmember_goodpjw2008", ["tabpfn_catfd10", "tabicl_full_raw", "tabpfn_other"], rng)
+    _folder(tmp_path, "thisray_x", ["xgb"], rng)
+    oof, _ = public_lib.load_public(IDS, TIDS)
+    M_BT2 = r'^(?!own:|tabpfnmember:oof_(tabpfn_catfd10|tabicl_full_raw):)'  # #6 step 10, verbatim
+    kept = sorted(k for k in list(oof) + ["own:a"] if not re.search(M_BT2, k))
+    want = sorted(k for k in oof if k.startswith(("tabpfnmember:oof_tabpfn_catfd10:", "tabpfnmember:oof_tabicl_full_raw:")))
+    assert len(want) == 2, f"keys={sorted(oof)}"
+    assert kept == sorted(want + ["own:a"]), f"kept={kept}"
+
+
+def test_r3_two_folders_of_one_family_both_keep_their_columns(tmp_path, monkeypatch):
+    import public_lib
+    monkeypatch.chdir(tmp_path)
+    rng = np.random.default_rng(7)
+    _member(tmp_path, "goodpjw2008_a", "foo", rng.random(N), rng.random(NT))
+    _member(tmp_path, "goodpjw2008_b", "foo", rng.random(N), rng.random(NT))
+    oof, _ = public_lib.load_public(IDS, TIDS)
+    fam = [k for k in oof if k.startswith("goodpjw2008:")]
+    assert len(fam) == 2, f"keys={sorted(oof)}"
+
+
+def test_r3_folder_named_own_with_colon_is_refused(tmp_path, monkeypatch):
+    import public_lib
+    monkeypatch.chdir(tmp_path)
+    _member(tmp_path, "own:goodpjw2008_x", "xgb", np.random.default_rng(8).random(N), np.random.default_rng(9).random(NT))
+    with pytest.raises(ValueError):
+        public_lib.load_public(IDS, TIDS)

@@ -93,3 +93,21 @@ def test_nonfinite_record_never_picked(tmp_path, oof, halves):
     pool = finals.load_pool(root=str(tmp_path))
     assert "a_bad" not in pool
     assert finals.choose(pool) == "b26"
+
+
+def test_r3_subs_csv_with_nan_is_never_picked(tmp_path):
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 0.6, "own:b": 0.4})
+    _blend(tmp_path, "b30", 0.9630, [0.9620, 0.9640], {"own:a": 1.0})
+    (tmp_path / "subs" / "b30.csv").write_text("id,satisfaction\n1,nan\n2,0.7\n")
+    pool = finals.load_pool(root=str(tmp_path))
+    assert "b30" not in pool
+    assert finals.choose(pool) == "b26"
+
+
+def test_r3_oversized_int_record_is_skipped_not_fatal(tmp_path):
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 0.6, "own:b": 0.4})
+    (tmp_path / "logs" / "b99.json").write_text('{"oof": 1' + "0" * 400 + ', "split_half": [1, 1], "weights": {"own:a": 1.0}}')
+    (tmp_path / "subs" / "b99.csv").write_text("id,satisfaction\n")
+    pool = finals.load_pool(root=str(tmp_path))
+    assert "b99" not in pool
+    assert finals.choose(pool) == "b26"
