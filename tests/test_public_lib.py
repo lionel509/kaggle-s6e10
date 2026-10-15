@@ -6,7 +6,7 @@ import numpy as np, pandas as pd, pytest
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "blend")); sys.path.insert(0, str(REPO / "models"))
 
-N, NT = 10, 4
+N, NT = 200, 60
 IDS, TIDS = np.arange(N), np.arange(100, 100 + NT)
 
 
