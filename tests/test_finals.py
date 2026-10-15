@@ -17,7 +17,7 @@ def _blend(root, name, oof, halves, weights, csv=True):
     (root / "logs").mkdir(parents=True, exist_ok=True); (root / "subs").mkdir(parents=True, exist_ok=True)
     json.dump({"oof": oof, "split_half": list(halves), "weights": weights}, open(root / "logs" / f"{name}.json", "w"))
     if csv:
-        (root / "subs" / f"{name}.csv").write_text("id,satisfaction\n")
+        (root / "subs" / f"{name}.csv").write_text("id,satisfaction\n0,0.5\n")
 
 
 def _random_pool(root, rng):
@@ -71,7 +71,7 @@ def test_main_states_follow_hedge_files(tmp_path, monkeypatch):
     assert J["safe"] == "b26"
     assert J["aggressive_kind"] == "family_hedge_pending" and J["aggressive_csv"] is None
 
-    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n")
+    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n0,0.5\n")
     finals.main(["finals"])
     J = json.load(open(tmp_path / "logs" / "finals.json"))
     assert J["aggressive_kind"] == "family_hedge"

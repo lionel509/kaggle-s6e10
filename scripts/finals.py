@@ -22,7 +22,7 @@ def _subs_finite(path):
             vals = [float(r["satisfaction"]) for r in csv.DictReader(f)]
     except (OSError, ValueError, KeyError, TypeError):
         return False
-    return all(math.isfinite(v) for v in vals)
+    return bool(vals) and all(math.isfinite(v) for v in vals)
 
 
 def load_pool(root="."):
@@ -61,8 +61,10 @@ def aggressive(pool, safe, root="."):
     _, _, swapped = hedge.hedge_matrix(pool[safe]["weights"], root)
     if swapped:
         hedge.main(["", safe, f"{safe}_hedge"])
-        return "refit_hedge", f"subs/{safe}_hedge.csv"
-    if (Path(root) / "subs" / f"{safe}_fam.csv").exists():
+        if _subs_finite(Path(root) / "subs" / f"{safe}_hedge.csv"):
+            return "refit_hedge", f"subs/{safe}_hedge.csv"
+        print(f"subs/{safe}_hedge.csv has a non-finite or empty satisfaction; not used as AGGR")
+    if _subs_finite(Path(root) / "subs" / f"{safe}_fam.csv"):
         return "family_hedge", f"subs/{safe}_fam.csv"
     print(f"RUN: .venv/bin/python blend/run_blend.py {safe}_fam --own-only --drop 'v4_cat'")
     return "family_hedge_pending", None
