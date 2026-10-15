@@ -111,3 +111,56 @@ def test_r3_oversized_int_record_is_skipped_not_fatal(tmp_path):
     pool = finals.load_pool(root=str(tmp_path))
     assert "b99" not in pool
     assert finals.choose(pool) == "b26"
+
+
+def test_r3_zero_byte_subs_is_not_a_submission(tmp_path):
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 0.6, "own:b": 0.4})
+    _blend(tmp_path, "b30", 0.9630, [0.9620, 0.9640], {"own:a": 1.0})
+    (tmp_path / "subs" / "b30.csv").write_bytes(b"")
+    pool = finals.load_pool(root=str(tmp_path))
+    assert "b30" not in pool
+    assert finals.choose(pool) == "b26"
+
+
+def test_r3_header_only_subs_is_not_a_submission(tmp_path):
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 0.6, "own:b": 0.4})
+    _blend(tmp_path, "b30", 0.9630, [0.9620, 0.9640], {"own:a": 1.0})
+    (tmp_path / "subs" / "b30.csv").write_text("id,satisfaction\n")
+    pool = finals.load_pool(root=str(tmp_path))
+    assert "b30" not in pool
+    assert finals.choose(pool) == "b26"
+
+
+def _aggr_setup(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "test.csv").write_text("id,x\n" + "".join(f"{i},0\n" for i in range(3)))
+    (tmp_path / "oof").mkdir(); (tmp_path / "subs" / "hedge").mkdir(parents=True)
+    np.save(tmp_path / "oof" / "a_test.npy", np.array([0.1, 0.2, 0.3]))
+    _blend(tmp_path, "b26", 0.961857, [0.96148, 0.962176], {"own:a": 1.0})
+
+
+def test_r3_nan_refit_hedge_is_never_returned(tmp_path, monkeypatch):
+    _aggr_setup(monkeypatch, tmp_path)
+    np.save(tmp_path / "subs" / "hedge" / "a_hedge_test.npy", np.array([0.5, np.nan, 0.7]))
+    pool = finals.load_pool(root=str(tmp_path))
+    kind, csv = finals.aggressive(pool, "b26", root=str(tmp_path))
+    assert kind != "refit_hedge"
+    assert kind == "family_hedge_pending" and csv is None
+
+
+def test_r3_nan_refit_hedge_falls_through_to_family(tmp_path, monkeypatch):
+    _aggr_setup(monkeypatch, tmp_path)
+    np.save(tmp_path / "subs" / "hedge" / "a_hedge_test.npy", np.array([0.5, np.nan, 0.7]))
+    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n0,0.5\n1,0.6\n2,0.7\n")
+    pool = finals.load_pool(root=str(tmp_path))
+    kind, csv = finals.aggressive(pool, "b26", root=str(tmp_path))
+    assert kind == "family_hedge" and csv == "subs/b26_fam.csv"
+
+
+def test_r3_nan_family_hedge_is_not_picked(tmp_path, monkeypatch):
+    _aggr_setup(monkeypatch, tmp_path)
+    (tmp_path / "subs" / "b26_fam.csv").write_text("id,satisfaction\n0,nan\n1,0.6\n2,0.7\n")
+    pool = finals.load_pool(root=str(tmp_path))
+    kind, csv = finals.aggressive(pool, "b26", root=str(tmp_path))
+    assert kind == "family_hedge_pending" and csv is None
