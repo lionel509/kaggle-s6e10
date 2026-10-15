@@ -2,7 +2,7 @@
 SAFE: the highest-OOF own-only blend that no other own-only blend beats strictly on both split halves.
 AGGR: SAFE with its own-member test columns refit-swapped (hedge files), else its family hedge (subs/<SAFE>_fam.csv).
 Usage (from the repo root): python scripts/finals.py   -> prints the table, writes logs/finals.json"""
-import datetime, json, math, sys
+import csv, datetime, json, math, sys
 from pathlib import Path
 import numpy as np
 
@@ -11,7 +11,18 @@ import hedge  # noqa: E402
 
 
 def _num(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+    # an AUC in [0, 1]; NaN fails the comparison, and a huge int compares exactly (math.isfinite would overflow)
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and 0.0 <= v <= 1.0
+
+
+def _subs_finite(path):
+    """Every satisfaction value in the submission is finite; a NaN row would upload as an invalid file."""
+    try:
+        with open(path, newline="") as f:
+            vals = [float(r["satisfaction"]) for r in csv.DictReader(f)]
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+    return all(math.isfinite(v) for v in vals)
 
 
 def load_pool(root="."):
@@ -27,7 +38,7 @@ def load_pool(root="."):
                 and len(b["split_half"]) == 2 and all(_num(v) for v in b["split_half"])
                 and isinstance(b.get("weights"), dict)):
             continue
-        if not (root / "subs" / f"{p.stem}.csv").exists(): continue
+        if not _subs_finite(root / "subs" / f"{p.stem}.csv"): continue
         pool[p.stem] = b
     return pool
 

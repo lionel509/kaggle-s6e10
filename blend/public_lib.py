@@ -15,11 +15,11 @@ def _align(path, ids):
     return df.set_index("id").reindex(ids)
 
 
-def _add(oof, tst, tag, fo, o, t):
+def _add(oof, tst, tag, fo, o, t, sfx=""):
     for c in o.columns:
         tc = c if c in t else "satisfaction"
         if c == "fold" or tc not in t or o[c].isna().any() or t[tc].isna().any(): continue
-        key = f"{tag}:{fo[:-4]}:{c}"
+        key = f"{tag}:{fo[:-4]}:{c}{sfx}"
         if key in oof: raise ValueError(f"duplicate public column {key}")  # two members must never share a key silently
         oof[key] = o[c].to_numpy(float); tst[key] = t[tc].to_numpy(float)
 
@@ -27,20 +27,23 @@ def _add(oof, tst, tag, fo, o, t):
 def load_public(train_ids, test_ids):
     oof, tst = {}, {}
     for d in sorted(glob.glob("public_out/*/")):
-        # the key is the full folder name: two folders from one family (same tag) must not share columns
-        tag = os.path.basename(d.rstrip("/"))
-        if tag.split("_")[0] == "own": raise ValueError(f"{d}: tag 'own' is reserved")  # run_blend's own: keys
+        # keys are <family>:<file>:<col>@<rest of folder>: the family prefix is what the #6 --drop regexes match,
+        # the @suffix keeps two folders of one family from sharing columns
+        name = os.path.basename(d.rstrip("/"))
+        tag, _, rest = name.partition("_")
+        if tag == "own" or ":" in name: raise ValueError(f"{d}: tag 'own' is reserved and ':' is the key separator")  # run_blend's own: keys
+        sfx = f"@{rest}" if rest else ""
         for fo, ft in PAIRS:
             if not (os.path.exists(d + fo) and os.path.exists(d + ft)): continue
             o, t = pd.read_csv(d + fo), pd.read_csv(d + ft)
             if len(o) != len(train_ids): continue
             o, t = o.set_index("id").reindex(train_ids), t.set_index("id").reindex(test_ids)
-            _add(oof, tst, tag, fo, o, t)
+            _add(oof, tst, tag, fo, o, t, sfx)
         # every other oof_*.csv that has a matching test_*.csv (the TFM member dataset and later pulls)
         for p in sorted(glob.glob(d + "oof_*.csv")):
             fo = os.path.basename(p)
             if fo in SKIP or not os.path.exists(d + "test_" + fo[4:]): continue
-            _add(oof, tst, tag, fo, _align(d + fo, train_ids), _align(d + "test_" + fo[4:], test_ids))
+            _add(oof, tst, tag, fo, _align(d + fo, train_ids), _align(d + "test_" + fo[4:], test_ids), sfx)
     return oof, tst
 
 

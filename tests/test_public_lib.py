@@ -28,7 +28,7 @@ def test_every_oof_file_loads_once(tmp_path, monkeypatch):
     pd.DataFrame({"id": IDS, "pred": rng.random(N)}).to_csv(d / "oof_foo.csv", index=False)
     pd.DataFrame({"id": TIDS, "pred": rng.random(NT)}).to_csv(d / "test_foo.csv", index=False)
     oof, tst = public_lib.load_public(IDS, TIDS)
-    expected = {"x_tag:oof_xgb:pred", "x_tag:oof_members:a", "x_tag:oof_members:b", "x_tag:oof_foo:pred"}
+    expected = {"x:oof_xgb:pred@tag", "x:oof_members:a@tag", "x:oof_members:b@tag", "x:oof_foo:pred@tag"}
     assert set(oof) == expected
     assert set(tst) == expected
     assert len(oof) == 4
