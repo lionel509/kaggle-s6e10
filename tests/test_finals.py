@@ -22,11 +22,11 @@ def _blend(root, name, oof, halves, weights, csv=True):
 
 def _random_pool(root, rng):
     n = int(rng.integers(2, 13))
-    names = rng.choice([f"b{i}" for i in range(20)] + [f"m_b{i}" for i in range(20)], n, replace=False)
-    for j, name in enumerate(names):
+    names = [f"b{int(rng.integers(20, 40))}"] + list(rng.choice([f"b{i}" for i in range(20)] + [f"m_b{i}" for i in range(20)], n - 1, replace=False))
+    for j, name in enumerate(names):  # names[0] is always a non-m own-only blend, so a pick always exists
         keys = [f"{PREFIXES[int(rng.integers(0, 4))]}x{int(rng.integers(0, 9))}" for _ in range(int(rng.integers(1, 4)))]
         if j == 0:
-            keys.append("own:x0")  # at least one own-only blend, so a pick always exists
+            keys = ["own:x0"]
         weights = {k: float(rng.random()) for k in keys}
         halves = rng.uniform(0.955, 0.965, 2)
         _blend(root, name, float(rng.uniform(0.955, 0.965)), halves, weights)
