@@ -15,19 +15,33 @@ def _num(v):
     return isinstance(v, (int, float)) and not isinstance(v, bool) and 0.0 <= v <= 1.0
 
 
-def _subs_finite(path):
-    """Every satisfaction value in the submission is finite; a NaN row would upload as an invalid file."""
+def _n_test(root):
+    """Data rows in data/test.csv: the row count every submission must match. Missing or empty stops the run."""
+    path = Path(root) / "data" / "test.csv"
+    try:
+        with open(path, newline="") as f:
+            n = sum(1 for _ in csv.DictReader(f))
+    except (OSError, ValueError, csv.Error) as e:
+        raise SystemExit(f"{path} is missing or unreadable: {e}")
+    if n == 0:
+        raise SystemExit(f"{path} has no data rows")
+    return n
+
+
+def _subs_finite(path, n_rows):
+    """Every satisfaction value is finite and the file has exactly n_rows rows; a short file would upload as a partial submission."""
     try:
         with open(path, newline="") as f:
             vals = [float(r["satisfaction"]) for r in csv.DictReader(f)]
     except (OSError, ValueError, KeyError, TypeError):
         return False
-    return bool(vals) and all(math.isfinite(v) for v in vals)
+    return len(vals) == n_rows and all(math.isfinite(v) for v in vals)
 
 
 def load_pool(root="."):
     """Every logs/<name>.json that is a valid blend record with its subs/<name>.csv; m_* measurement files are skipped."""
     root = Path(root); pool = {}
+    n_test = _n_test(root)
     for p in sorted((root / "logs").glob("*.json")):
         if p.stem.startswith("m_"): continue
         try:
@@ -38,7 +52,7 @@ def load_pool(root="."):
                 and len(b["split_half"]) == 2 and all(_num(v) for v in b["split_half"])
                 and isinstance(b.get("weights"), dict)):
             continue
-        if not _subs_finite(root / "subs" / f"{p.stem}.csv"): continue
+        if not _subs_finite(root / "subs" / f"{p.stem}.csv", n_test): continue
         pool[p.stem] = b
     return pool
 
@@ -58,13 +72,14 @@ def choose(pool):
 
 
 def aggressive(pool, safe, root="."):
+    n_test = _n_test(root)
     _, _, swapped = hedge.hedge_matrix(pool[safe]["weights"], root)
     if swapped:
         hedge.main(["", safe, f"{safe}_hedge"])
-        if _subs_finite(Path(root) / "subs" / f"{safe}_hedge.csv"):
+        if _subs_finite(Path(root) / "subs" / f"{safe}_hedge.csv", n_test):
             return "refit_hedge", f"subs/{safe}_hedge.csv"
-        print(f"subs/{safe}_hedge.csv has a non-finite or empty satisfaction; not used as AGGR")
-    if _subs_finite(Path(root) / "subs" / f"{safe}_fam.csv"):
+        print(f"subs/{safe}_hedge.csv has a non-finite, empty or wrong row count satisfaction; not used as AGGR")
+    if _subs_finite(Path(root) / "subs" / f"{safe}_fam.csv", n_test):
         return "family_hedge", f"subs/{safe}_fam.csv"
     print(f"RUN: .venv/bin/python blend/run_blend.py {safe}_fam --own-only --drop 'v4_cat'")
     return "family_hedge_pending", None
