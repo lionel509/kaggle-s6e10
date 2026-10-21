@@ -15,6 +15,7 @@ if os.environ.get("TEACH"):
     from features import teachers; E, ET = teachers(tr, te, og, og_y); X, XT = pd.concat([X, E], axis=1), pd.concat([XT, ET], axis=1); name += "_teach" + ("" if os.environ["TEACH"] == "1" else os.environ["TEACH"])
 if os.environ.get("BLKTE"): name += "_blkte"
 SOFT = bool(os.environ.get("SOFT")); name += "_soft" if SOFT else ""
+LRS = os.environ.get("LRS"); assert LRS in (None, "flat_anneal"), LRS; name += "_fa" if LRS else ""  # flat_anneal: goodpjw2008's RealMLP lr schedule
 SMOKE = int(os.environ.get("SMOKE") or 0); R = "smoke/" if SMOKE else ""  # smoke runs write only under smoke/
 twins = [FD, AGE, DD, AD] + [c for c in tr.columns if tr[c].dtype.kind == "i" and tr[c].max() <= 5]
 for D, src in ((X, tr), (XT, te)):
@@ -28,7 +29,7 @@ for c in cats:
 num = [c for c in X.columns if c not in cats]; X[num] = X[num].fillna(-1); XT[num] = XT[num].fillna(-1)
 if SMOKE: X, XT, y = X.iloc[:SMOKE].reset_index(drop=True), XT.iloc[:SMOKE // 5].reset_index(drop=True), y[:SMOKE]
 for d in ("oof/ckpt", "logs", "subs/hedge", "data/soft"): os.makedirs(R + d, exist_ok=True)
-P = dict(n_ens=NE, n_epochs=EP, batch_size=256, use_early_stopping=False, lr=0.053, wd=0.0236, sq_mom=0.988, lr_sched="lin_cos_log_15",
+P = dict(n_ens=NE, n_epochs=EP, batch_size=256, use_early_stopping=False, lr=0.053, wd=0.0236, sq_mom=0.988, lr_sched=LRS or "lin_cos_log_15",
          wd_sched="cos_log_15", first_layer_lr_factor=0.25, embedding_size=5, max_one_hot_cat_size=18, hidden_sizes=[512, 256, 128], act="silu",
          p_drop=0.05, p_drop_sched="expm4t", plr_hidden_1=16, plr_hidden_2=8, plr_act_name="gelu", plr_lr_factor=0.1151, plr_sigma=2.33,
          ls_eps=0.01, ls_eps_sched="sqrt_cos", add_front_scale=False, bias_init_mode="neg-uniform-dynamic-2",
