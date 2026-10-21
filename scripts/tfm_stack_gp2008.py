@@ -36,3 +36,16 @@ for C in (0.003, 0.01, 0.03, 0.1):
 a, C, o = best; np.save("logs/gp2008_best_oof.npy", o)
 m = LogisticRegression(C=C, max_iter=500).fit(X, y); np.save("logs/gp2008_best_test.npy", m.decision_function(XT))
 print("best", a, C)
+
+# b28 submission: same 156 members, fixed C=0.03 (the OOF winner above), full-train fit, rank-normalized like b27.
+from scipy.stats import rankdata, spearmanr
+C_SUB = 0.03
+t = LogisticRegression(C=C_SUB, max_iter=500).fit(X, y).decision_function(XT); np.save("logs/gp2008_c003_test.npy", t)
+te = pd.read_csv("data/test.csv", usecols=["id"]); ss = pd.read_csv("data/sample_submission.csv")
+p = (rankdata(t) - .5) / len(t)
+assert len(p) == len(ss) == len(te) and (te.id.values == ss.id.values).all(), "row/id mismatch vs sample_submission"
+b27 = pd.read_csv("subs/b27_lr_tfm_pub124.csv")
+assert (b27.id.values == te.id.values).all(), "b27 id order differs"
+print("rank corr vs b27 (spearman):", spearmanr(p, b27.satisfaction.values)[0], flush=True)
+pd.DataFrame({"id": te.id, "satisfaction": p}).to_csv("subs/b28_lr_tfm_gp2008.csv", index=False)
+print("wrote subs/b28_lr_tfm_gp2008.csv", len(p), "rows")
