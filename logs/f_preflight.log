@@ -1,0 +1,8 @@
+/Users/lionelweng/Documents/Citadel/Active/Kaggle S6E10/.venv/lib/python3.12/site-packages/torch/jit/_script.py:1491: FutureWarning: `torch.jit.script` is deprecated. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+fold 0 0.922971 (5s)
+fold 1 0.925568 (7s)
+fold 2 0.935321 (8s)
+fold 3 0.917929 (9s)
+fold 4 0.922897 (10s)
+OOF 0.925215  (10s)

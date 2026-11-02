@@ -1,0 +1,19 @@
+b26 OOF 0.9618569585035098
+lr own C=0.0003: nested OOF 0.961795
+lr own C=0.001: nested OOF 0.961814
+lr own C=0.003: nested OOF 0.961824
+lr own C=0.01: nested OOF 0.961830
+lr own C=0.03: nested OOF 0.961824
+lr own C=0.1: nested OOF 0.961818
+lr own+tfm C=0.0003: nested OOF 0.961793
+lr own+tfm C=0.001: nested OOF 0.961904
+lr own+tfm C=0.003: nested OOF 0.961961
+lr own+tfm C=0.01: nested OOF 0.961986
+lr own+tfm C=0.03: nested OOF 0.961982
+lr own+tfm C=0.1: nested OOF 0.961980
+lr tfm C=0.0003: nested OOF 0.960389
+lr tfm C=0.001: nested OOF 0.960754
+lr tfm C=0.003: nested OOF 0.961060
+lr tfm C=0.01: nested OOF 0.961208
+lr tfm C=0.03: nested OOF 0.961235
+lr tfm C=0.1: nested OOF 0.961237

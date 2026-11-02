@@ -1,0 +1,30 @@
+{
+ "name": "v4_cat_s42_extra_aux_teach_cross_block",
+ "oof": 0.9614378934896511,
+ "folds": [
+  0.9614809826314363,
+  0.9605104088418938,
+  0.9620556369870573,
+  0.9616850663553651,
+  0.9614844396642624
+ ],
+ "iters": [
+  1749,
+  1476,
+  1579,
+  1654,
+  1040
+ ],
+ "params": {
+  "iterations": 20000,
+  "learning_rate": 0.06,
+  "depth": 7,
+  "l2_leaf_reg": 5,
+  "eval_metric": "AUC",
+  "od_type": "Iter",
+  "od_wait": 300,
+  "random_seed": 42,
+  "thread_count": 8,
+  "verbose": 0
+ }
+}

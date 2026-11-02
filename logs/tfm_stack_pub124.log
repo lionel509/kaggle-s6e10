@@ -1,0 +1,10 @@
+skip ext/pub124/oof_ar_cat_5f.npy (699635,)
+skip ext/pub124/oof_ar_lgb_5f.npy (699635,)
+skip ext/pub124/oof_ar_realmlp_5f.npy (699635,)
+skip ext/pub124/oof_ar_xgb_5f.npy (699635,)
+143 members
+all C=0.001: nested 0.962028
+all C=0.003: nested 0.962083
+all C=0.01: nested 0.962120
+all C=0.03: nested 0.962131
+best 0.9621309043839311 0.03

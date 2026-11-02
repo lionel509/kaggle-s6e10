@@ -1,0 +1,17 @@
+skip ext/pub124/oof_ar_cat_5f.npy (699635,)
+skip ext/pub124/oof_ar_lgb_5f.npy (699635,)
+skip ext/pub124/oof_ar_realmlp_5f.npy (699635,)
+skip ext/pub124/oof_ar_xgb_5f.npy (699635,)
+[     15s] 156 base members 1 new members: ['b29:yekenot_tabm']
+[     48s] b28 reproduction: nested C=0.03 0.962149 (expected 0.962149); logged OOF AUC 0.962149; max |diff| of OOF vs logs/gp2008_best_oof.npy 3.34e-01
+[     86s] guard b29:yekenot_tabm: solo 0.960591 gain_alone +0.000002
+[    116s] 157 members C=0.01: nested 0.962135
+[    169s] 157 members C=0.03: nested 0.962151
+[    225s] 157 members C=0.1: nested 0.962142
+[    283s] coef b29:yekenot_tabm: +0.0072 rank 86 of 157 (1 = largest)
+[    283s] flagged: none
+[    283s] candidate set 157 members, best C=0.03, nested 0.962151
+[    284s] DeLong candidate vs b28: auc 0.962149 -> 0.962151, sd 3.95242e-06, z +0.490
+[    284s] DeLong full-set (incl. flagged) vs b28 at C=0.03: z +0.490
+[    348s] wrote subs/b29_lr_tfm_gp2008_tabm.csv 299844 rows; spearman vs b28 test preds 0.999674
+[    348s] GATE FAIL (oof 0.962151 > 0.962149: True; z +0.490 >= 2: False)

@@ -1,0 +1,99 @@
+2026-10-11 14:04:23 queue start
+2026-10-11 14:04:23 waiting for A: run_A.done absent, run_A.pid 57042
+2026-10-11 15:08:56 waiting for A: run_A.done absent, run_A.pid 57042
+2026-10-11 16:25:11 waiting for A: run_A.done absent, run_A.pid 57042
+2026-10-11 17:25:12 waiting for A: run_A.done absent, run_A.pid 57042
+2026-10-11 17:40:12 A finished: cat ok, realmlp ok
+2026-10-11 17:40:12 start b_teach_xgb
+2026-10-11 17:40:38 ok b_teach_xgb
+2026-10-11 17:40:38 start b_teach_xgb
+2026-10-11 17:41:07 ok b_teach_xgb
+2026-10-11 17:41:07 start b_teach_xgb
+2026-10-11 17:41:35 ok b_teach_xgb
+2026-10-11 17:41:35 start b_teach_xgb
+2026-10-11 17:42:06 ok b_teach_xgb
+2026-10-11 17:42:06 start b_teach_xgb
+2026-10-11 17:42:31 ok b_teach_xgb
+2026-10-11 17:42:31 start b_teach_xgb
+2026-10-11 17:42:55 ok b_teach_xgb
+2026-10-11 17:42:55 start b_teach_xgb
+2026-10-11 17:43:22 ok b_teach_xgb
+2026-10-11 17:43:22 start b_teach_xgb
+2026-10-11 17:43:48 ok b_teach_xgb
+2026-10-11 17:43:48 start b_teach_xgb
+2026-10-11 17:44:15 ok b_teach_xgb
+2026-10-11 17:44:15 start b_teach_xgb
+2026-10-11 17:44:45 ok b_teach_xgb
+2026-10-11 17:44:45 start b_teach_mlp
+2026-10-11 18:13:00 ok b_teach_mlp
+2026-10-11 18:13:00 start b_teach_mlp
+2026-10-11 19:04:11 ok b_teach_mlp
+2026-10-11 19:04:11 start b_teach_mlp
+2026-10-11 20:54:01 ok b_teach_mlp
+2026-10-11 20:54:01 start b_teach_mlp
+2026-10-11 21:25:56 ok b_teach_mlp
+2026-10-11 21:25:56 start b_teach_mlp
+2026-10-11 22:49:18 ok b_teach_mlp
+2026-10-11 22:49:18 start b_teach_mlp
+2026-10-11 22:54:58 ok b_teach_mlp
+2026-10-11 22:54:58 start b_teach_mlp
+2026-10-11 23:00:26 ok b_teach_mlp
+2026-10-11 23:00:26 start b_teach_mlp
+2026-10-11 23:05:51 ok b_teach_mlp
+2026-10-11 23:05:51 start b_teach_mlp
+2026-10-11 23:11:25 ok b_teach_mlp
+2026-10-11 23:11:25 start b_teach_mlp
+2026-10-11 23:17:07 ok b_teach_mlp
+2026-10-11 23:17:07 start b_soft_xgb
+2026-10-12 00:28:51 ok b_soft_xgb
+GATE PROMOTE v5_xgb_d8_s42_extra_aux_teach_soft vs v5_xgb_d8_s42_extra_aux_teach: +0.000093 OOF, 4/5 folds up
+2026-10-12 00:28:51 start b_soft_mlp
+2026-10-12 01:13:15 ok b_soft_mlp
+GATE DROP v3b_realmlp_e6_n8_s42_aux_teach_soft vs v3b_realmlp_e6_n8_s42_aux_teach: +0.000132 OOF, 3/5 folds up
+2026-10-12 01:13:15 start b_teach_xgb
+2026-10-12 01:13:44 ok b_teach_xgb
+2026-10-12 01:13:44 start b_teach_xgb
+2026-10-12 01:14:13 ok b_teach_xgb
+2026-10-12 01:14:13 start b_teach_xgb
+2026-10-12 01:14:41 ok b_teach_xgb
+2026-10-12 01:14:41 start b_teach_xgb
+2026-10-12 01:15:10 ok b_teach_xgb
+2026-10-12 01:15:10 start b_teach_xgb
+2026-10-12 01:15:41 ok b_teach_xgb
+2026-10-12 08:00:02 start b_teach_mlp
+2026-10-12 08:07:08 ok b_teach_mlp
+2026-10-12 08:07:09 start b_teach_mlp
+2026-10-12 08:14:11 ok b_teach_mlp
+2026-10-12 08:14:11 start b_teach_mlp
+2026-10-12 08:32:05 ok b_teach_mlp
+2026-10-12 08:32:05 start b_teach_mlp
+2026-10-12 13:22:31 ok b_teach_mlp
+2026-10-12 13:22:31 start b_teach_mlp
+2026-10-12 13:29:33 ok b_teach_mlp
+2026-10-12 13:29:33 start b_k20_xgb_soft
+2026-10-12 15:10:36 ok b_k20_xgb_soft
+2026-10-12 15:10:36 start c_teacher
+2026-10-12 15:15:36 ok c_teacher
+2026-10-12 15:15:36 start c_teach3
+2026-10-12 15:23:41 ok c_teach3
+GATE PROMOTE v5_xgb_d8_s42_extra_aux_teach3 vs v5_xgb_d8_s42_extra_aux_teach: +0.000075 OOF, 5/5 folds up
+2026-10-12 15:23:41 start c_k20
+2026-10-12 15:44:54 ok c_k20
+2026-10-12 15:44:54 start d_xgb
+2026-10-12 15:53:34 ok d_xgb
+GATE DROP v5_xgb_d8_s42_extra_aux_teach_blkte vs v5_xgb_d8_s42_extra_aux_teach: -0.000034 OOF, 1/5 folds up
+2026-10-12 15:53:34 start d_mlp
+2026-10-12 16:47:56 ok d_mlp
+GATE DROP v3b_realmlp_e6_n8_s42_aux_teach_blkte vs v3b_realmlp_e6_n8_s42_aux_teach: +0.000084 OOF, 3/5 folds up
+2026-10-12 16:47:56 start e_refit_cat
+2026-10-12 17:09:28 ok e_refit_cat
+2026-10-12 17:09:28 start e_refit_xgb
+2026-10-12 17:10:17 ok e_refit_xgb
+2026-10-12 17:10:17 start e_refit_xgb3
+2026-10-12 17:11:00 ok e_refit_xgb3
+2026-10-12 17:11:00 start e_refit_mlp
+2026-10-12 17:20:54 ok e_refit_mlp
+2026-10-12 17:20:54 start f_preflight
+2026-10-12 17:21:09 ok f_preflight
+2026-10-12 17:21:09 start f_tabm_k5
+2026-10-12 18:35:16 signal TERM: killed step group 39852, lock released, exit

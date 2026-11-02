@@ -1,0 +1,34 @@
+{
+ "name": "v5_xgb_d8_s42_extra_aux_teach3",
+ "oof": 0.9613409885776866,
+ "folds": [
+  0.961487737158627,
+  0.9604419631279522,
+  0.9618689031613136,
+  0.9615195131586708,
+  0.9614044868842283
+ ],
+ "iters": [
+  855,
+  838,
+  997,
+  696,
+  926
+ ],
+ "params": {
+  "n_estimators": 20000,
+  "learning_rate": 0.02,
+  "max_depth": 8,
+  "min_child_weight": 20,
+  "subsample": 0.8,
+  "colsample_bytree": 0.5,
+  "reg_lambda": 5,
+  "tree_method": "hist",
+  "enable_categorical": true,
+  "max_cat_to_onehot": 4,
+  "eval_metric": "auc",
+  "early_stopping_rounds": 300,
+  "random_state": 42,
+  "n_jobs": 8
+ }
+}
